@@ -35,18 +35,6 @@ function criarCardCurso(curso) {
     botaoAcesso.href = `curso.html?id=${curso.id}`;
     botaoAcesso.className = 'btn-acessar';
     botaoAcesso.textContent = 'Acesse aqui';
-    // Estilos inline para garantir visibilidade
-    botaoAcesso.style.display = 'block';
-    botaoAcesso.style.backgroundColor = '#3498db';
-    botaoAcesso.style.color = 'white';
-    botaoAcesso.style.padding = '0.75rem 1.5rem';
-    botaoAcesso.style.textDecoration = 'none';
-    botaoAcesso.style.borderRadius = '4px';
-    botaoAcesso.style.marginTop = '1rem';
-    botaoAcesso.style.fontWeight = 'bold';
-    botaoAcesso.style.textAlign = 'center';
-    botaoAcesso.style.width = '100%';
-    botaoAcesso.style.boxSizing = 'border-box';
     
     // Montar a estrutura do card
     cardContent.appendChild(titulo);

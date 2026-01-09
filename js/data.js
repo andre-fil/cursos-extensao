@@ -6,7 +6,7 @@ const cursos = [
         descricao_curta: "Aprenda os fundamentos de HTML, CSS e JavaScript para criar páginas web modernas e responsivas.",
         duracao: "8 semanas",
         carga_horaria: 40,
-        modalidade: "Online",
+        modalidade: "EAD",
         ementa: [
             "Fundamentos de HTML5 e estrutura semântica",
             "Estilização com CSS3 e layouts responsivos",
@@ -23,7 +23,7 @@ const cursos = [
         descricao_curta: "Desenvolva habilidades essenciais para gerenciar projetos utilizando metodologias ágeis como Scrum e Kanban.",
         duracao: "6 semanas",
         carga_horaria: 30,
-        modalidade: "Presencial",
+        modalidade: "EAD",
         ementa: [
             "Conceitos fundamentais de gestão de projetos",
             "Metodologias ágeis: Scrum, Kanban e Lean",
@@ -40,7 +40,7 @@ const cursos = [
         descricao_curta: "Domine as principais estratégias e ferramentas de marketing digital para promover negócios nas redes sociais.",
         duracao: "7 semanas",
         carga_horaria: 35,
-        modalidade: "Híbrido",
+        modalidade: "EAD",
         ementa: [
             "Fundamentos do marketing digital",
             "SEO e otimização para mecanismos de busca",
@@ -58,7 +58,7 @@ const cursos = [
         descricao_curta: "Aprenda funções avançadas, tabelas dinâmicas, macros VBA e técnicas de análise de dados no Excel.",
         duracao: "5 semanas",
         carga_horaria: 25,
-        modalidade: "Online",
+        modalidade: "EAD",
         ementa: [
             "Funções avançadas do Excel: PROC.V, ÍNDICE, CORRESP",
             "Tabelas e gráficos dinâmicos",

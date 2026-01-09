@@ -65,12 +65,20 @@ main {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    min-height: 0;
+}
+
+.curso-card .curso-conteudo {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .curso-card h2 {
     color: #2c3e50;
     margin-bottom: 0.5rem;
     font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
 .curso-card p {
@@ -85,6 +93,7 @@ main {
     color: #666;
     font-size: 0.9rem;
     margin-top: 0.5rem;
+    flex-shrink: 0;
 }
 
 .curso-card .curso-info strong {
@@ -100,10 +109,12 @@ main {
     border-radius: 4px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-top: auto;
+    margin-bottom: 0;
     font-weight: bold;
     text-align: center;
     width: 100%;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .curso-card .btn-acessar:hover {

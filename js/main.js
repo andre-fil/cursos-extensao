@@ -17,6 +17,10 @@ function criarCardCurso(curso) {
     const cardContent = document.createElement('div');
     cardContent.className = 'curso-card-content';
     
+    // Criar container para o conteúdo (título, descrição, duração)
+    const conteudoContainer = document.createElement('div');
+    conteudoContainer.className = 'curso-conteudo';
+    
     // Título do curso
     const titulo = document.createElement('h2');
     titulo.textContent = curso.titulo;
@@ -37,9 +41,10 @@ function criarCardCurso(curso) {
     botaoAcesso.textContent = 'Acesse aqui';
     
     // Montar a estrutura do card
-    cardContent.appendChild(titulo);
-    cardContent.appendChild(descricao);
-    cardContent.appendChild(duracao);
+    conteudoContainer.appendChild(titulo);
+    conteudoContainer.appendChild(descricao);
+    conteudoContainer.appendChild(duracao);
+    cardContent.appendChild(conteudoContainer);
     cardContent.appendChild(botaoAcesso);
     card.appendChild(cardContent);
     

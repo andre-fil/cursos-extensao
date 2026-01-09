@@ -1,33 +1,87 @@
-// Função para renderizar os cursos na página inicial
-function renderizarCursos() {
-    const cursosGrid = document.getElementById('cursos-grid');
+/**
+ * main.js
+ * Lógica para renderização dinâmica dos cards de cursos na página inicial
+ */
+
+/**
+ * Cria um elemento card para um curso específico
+ * @param {Object} curso - Objeto contendo os dados do curso
+ * @returns {HTMLElement} Elemento div com a estrutura do card
+ */
+function criarCardCurso(curso) {
+    // Criar o elemento card
+    const card = document.createElement('div');
+    card.className = 'curso-card';
     
-    if (!cursosGrid) {
-        console.error('Elemento cursos-grid não encontrado');
-        return;
-    }
+    // Adicionar evento de clique para redirecionar
+    card.addEventListener('click', () => {
+        window.location.href = `curso.html?id=${curso.id}`;
+    });
     
-    if (!cursos || cursos.length === 0) {
-        cursosGrid.innerHTML = '<p>Nenhum curso disponível no momento.</p>';
-        return;
-    }
+    // Criar o conteúdo do card
+    const cardContent = document.createElement('div');
+    cardContent.className = 'curso-card-content';
     
-    cursosGrid.innerHTML = cursos.map(curso => `
-        <div class="curso-card">
-            <img src="${curso.imagem}" alt="${curso.titulo}">
-            <div class="curso-card-content">
-                <h2>${curso.titulo}</h2>
-                <p>${curso.descricao}</p>
-                <div class="curso-info">
-                    <strong>Duração:</strong> ${curso.duracao} | 
-                    <strong>Nível:</strong> ${curso.nivel}
-                </div>
-                <a href="curso.html?id=${curso.id}">Ver Detalhes</a>
-            </div>
-        </div>
-    `).join('');
+    // Título do curso
+    const titulo = document.createElement('h2');
+    titulo.textContent = curso.titulo;
+    
+    // Descrição curta
+    const descricao = document.createElement('p');
+    descricao.textContent = curso.descricao_curta;
+    
+    // Duração
+    const duracao = document.createElement('div');
+    duracao.className = 'curso-info';
+    duracao.innerHTML = `<strong>Duração:</strong> ${curso.duracao}`;
+    
+    // Montar a estrutura do card
+    cardContent.appendChild(titulo);
+    cardContent.appendChild(descricao);
+    cardContent.appendChild(duracao);
+    card.appendChild(cardContent);
+    
+    return card;
 }
 
-// Inicializar a página quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', renderizarCursos);
+/**
+ * Renderiza todos os cursos na grade
+ * Busca os dados do arquivo data.js (variável global cursos)
+ */
+function renderizarCursos() {
+    // Obter o container da grade
+    const cursosGrid = document.getElementById('cursos-grid');
+    
+    // Verificar se o elemento existe
+    if (!cursosGrid) {
+        console.error('Elemento cursos-grid não encontrado no DOM');
+        return;
+    }
+    
+    // Verificar se os dados estão disponíveis
+    if (typeof cursos === 'undefined' || !cursos || cursos.length === 0) {
+        cursosGrid.innerHTML = '<p class="mensagem-vazia">Nenhum curso disponível no momento.</p>';
+        return;
+    }
+    
+    // Limpar o container antes de adicionar os cards
+    cursosGrid.innerHTML = '';
+    
+    // Criar e adicionar um card para cada curso
+    cursos.forEach(curso => {
+        const card = criarCardCurso(curso);
+        cursosGrid.appendChild(card);
+    });
+}
 
+/**
+ * Inicializa a página quando o DOM estiver completamente carregado
+ * Garante que os scripts data.js e main.js sejam executados na ordem correta
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Aguardar um pequeno delay para garantir que data.js foi carregado
+    // Isso é necessário porque os scripts são carregados de forma assíncrona
+    setTimeout(() => {
+        renderizarCursos();
+    }, 100);
+});

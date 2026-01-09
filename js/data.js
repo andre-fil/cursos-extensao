@@ -5,7 +5,7 @@ const cursos = [
         titulo: "Introdução à Programação Web",
         descricao_curta: "Aprenda os fundamentos de HTML, CSS e JavaScript para criar páginas web modernas e responsivas.",
         duracao: "8 semanas",
-        carga_horaria: 40,
+        carga_horaria: 400,
         modalidade: "EAD",
         ementa: [
             "Fundamentos de HTML5 e estrutura semântica",

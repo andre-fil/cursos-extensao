@@ -128,9 +128,47 @@ main {
     line-height: 1.8;
 }
 
+.curso-detalhes h3 {
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.curso-detalhes .ementa-lista {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+    line-height: 1.8;
+}
+
+.curso-detalhes .ementa-lista li {
+    margin-bottom: 0.5rem;
+}
+
+.curso-botoes {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.curso-detalhes .btn-matricula {
+    display: inline-block;
+    background-color: #27ae60;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+}
+
+.curso-detalhes .btn-matricula:hover {
+    background-color: #229954;
+}
+
 .curso-detalhes .btn-voltar {
     display: inline-block;
-    margin-top: 2rem;
     background-color: #95a5a6;
     color: white;
     padding: 0.75rem 1.5rem;
@@ -181,6 +219,16 @@ footer {
     
     .curso-detalhes h2 {
         font-size: 1.5rem;
+    }
+    
+    .curso-botoes {
+        flex-direction: column;
+    }
+    
+    .curso-detalhes .btn-matricula,
+    .curso-detalhes .btn-voltar {
+        width: 100%;
+        text-align: center;
     }
 }
 

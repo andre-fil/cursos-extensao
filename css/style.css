@@ -50,7 +50,6 @@ main {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
 }
 
 .curso-card:hover {
@@ -83,6 +82,23 @@ main {
 
 .curso-card .curso-info strong {
     color: #2c3e50;
+}
+
+.curso-card .btn-acessar {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.curso-card .btn-acessar:hover {
+    background-color: #2980b9;
 }
 
 .mensagem-vazia {

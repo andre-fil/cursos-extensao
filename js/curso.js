@@ -24,7 +24,20 @@ function buscarCursoPorId(id) {
         console.error('Dados dos cursos não encontrados');
         return undefined;
     }
-    return window.cursos.find(curso => curso.id === id);
+    
+    // Remover espaços e normalizar o ID
+    const idNormalizado = id.trim();
+    
+    // Buscar o curso
+    const curso = window.cursos.find(curso => curso.id === idNormalizado);
+    
+    // Debug: log para verificar
+    if (!curso) {
+        console.log('ID buscado:', idNormalizado);
+        console.log('IDs disponíveis:', window.cursos.map(c => c.id));
+    }
+    
+    return curso;
 }
 
 /**
@@ -57,15 +70,21 @@ function renderizarDetalhesCurso() {
         return;
     }
     
+    console.log('Buscando curso com ID da URL:', cursoId);
+    console.log('Cursos disponíveis:', window.cursos);
+    
     const curso = buscarCursoPorId(cursoId);
     
     if (!curso) {
+        console.error('Curso não encontrado. ID recebido:', cursoId);
         cursoDetalhes.innerHTML = `
-            <p>Curso não encontrado.</p>
+            <p>Curso não encontrado. ID: ${cursoId}</p>
             <a href="index.html" class="btn-voltar">Voltar para a página principal</a>
         `;
         return;
     }
+    
+    console.log('Curso encontrado:', curso);
     
     // Atualizar o título da página
     document.title = curso.titulo + ' - Cursos de Extensão';
@@ -106,8 +125,16 @@ function renderizarDetalhesCurso() {
  * Inicializa a página quando o DOM estiver carregado
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Função para tentar renderizar, verificando se os dados estão disponíveis
+    function tentarRenderizar() {
+        if (window.cursos && window.cursos.length > 0) {
+            renderizarDetalhesCurso();
+        } else {
+            // Se os dados ainda não estiverem disponíveis, tentar novamente
+            setTimeout(tentarRenderizar, 50);
+        }
+    }
+    
     // Aguardar um pequeno delay para garantir que data.js foi carregado
-    setTimeout(() => {
-        renderizarDetalhesCurso();
-    }, 100);
+    setTimeout(tentarRenderizar, 100);
 });

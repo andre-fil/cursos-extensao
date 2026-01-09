@@ -1,5 +1,6 @@
 // Estrutura de dados dos cursos de extensão
-const cursos = [
+// Definir diretamente em window.cursos para garantir disponibilidade imediata
+window.cursos = window.cursos || [
     {
         id: "EXT-001",
         titulo: "Introdução à Programação Web",
@@ -74,9 +75,5 @@ const cursos = [
 // Exportar os dados para uso em outros arquivos JavaScript
 if (typeof module !== 'undefined' && module.exports) {
     // Ambiente Node.js
-    module.exports = cursos;
-} else {
-    // Ambiente browser - variável global
-    // Sempre disponibilizar em window.cursos para garantir acesso
-    window.cursos = cursos;
+    module.exports = window.cursos;
 }

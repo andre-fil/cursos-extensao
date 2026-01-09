@@ -13,11 +13,6 @@ function criarCardCurso(curso) {
     const card = document.createElement('div');
     card.className = 'curso-card';
     
-    // Adicionar evento de clique para redirecionar
-    card.addEventListener('click', () => {
-        window.location.href = `curso.html?id=${curso.id}`;
-    });
-    
     // Criar o conteúdo do card
     const cardContent = document.createElement('div');
     cardContent.className = 'curso-card-content';
@@ -35,10 +30,17 @@ function criarCardCurso(curso) {
     duracao.className = 'curso-info';
     duracao.innerHTML = `<strong>Duração:</strong> ${curso.duracao}`;
     
+    // Botão "Acesse aqui"
+    const botaoAcesso = document.createElement('a');
+    botaoAcesso.href = `curso.html?id=${curso.id}`;
+    botaoAcesso.className = 'btn-acessar';
+    botaoAcesso.textContent = 'Acesse aqui';
+    
     // Montar a estrutura do card
     cardContent.appendChild(titulo);
     cardContent.appendChild(descricao);
     cardContent.appendChild(duracao);
+    cardContent.appendChild(botaoAcesso);
     card.appendChild(cardContent);
     
     return card;

@@ -19,7 +19,12 @@ function obterParametroURL(nome) {
  * @returns {Object|undefined} Objeto do curso ou undefined se não encontrado
  */
 function buscarCursoPorId(id) {
-    return cursos.find(curso => curso.id === id);
+    // Acessar cursos de window.cursos (definido em data.js)
+    if (!window.cursos) {
+        console.error('Dados dos cursos não encontrados');
+        return undefined;
+    }
+    return window.cursos.find(curso => curso.id === id);
 }
 
 /**
@@ -30,6 +35,15 @@ function renderizarDetalhesCurso() {
     
     if (!cursoDetalhes) {
         console.error('Elemento curso-detalhes não encontrado');
+        return;
+    }
+    
+    // Verificar se os dados dos cursos estão disponíveis
+    if (!window.cursos || window.cursos.length === 0) {
+        cursoDetalhes.innerHTML = `
+            <p>Erro ao carregar os dados dos cursos.</p>
+            <a href="index.html" class="btn-voltar">Voltar para a página principal</a>
+        `;
         return;
     }
     

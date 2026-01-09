@@ -58,8 +58,8 @@ function renderizarCursos() {
         return;
     }
     
-    // Verificar se os dados estão disponíveis
-    if (typeof cursos === 'undefined' || !cursos || cursos.length === 0) {
+    // Verificar se os dados estão disponíveis (usar window.cursos definido em data.js)
+    if (!window.cursos || window.cursos.length === 0) {
         cursosGrid.innerHTML = '<p class="mensagem-vazia">Nenhum curso disponível no momento.</p>';
         return;
     }
@@ -68,7 +68,7 @@ function renderizarCursos() {
     cursosGrid.innerHTML = '';
     
     // Criar e adicionar um card para cada curso
-    cursos.forEach(curso => {
+    window.cursos.forEach(curso => {
         const card = criarCardCurso(curso);
         cursosGrid.appendChild(card);
     });

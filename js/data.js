@@ -77,5 +77,6 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = cursos;
 } else {
     // Ambiente browser - variável global
+    // Sempre disponibilizar em window.cursos para garantir acesso
     window.cursos = cursos;
 }

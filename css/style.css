@@ -1,16 +1,28 @@
+/* ============================================
+   RESET E CONFIGURAÇÕES GLOBAIS
+   ============================================ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* ============================================
+   TIPOGRAFIA E CORES BASE
+   ============================================ */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
+    color: #2c3e50;
+    background-color: #f5f7fa;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   HEADER
+   ============================================ */
 header {
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3498db 100%);
     color: white;
@@ -65,12 +77,18 @@ header h1 a:hover {
     opacity: 0.9;
 }
 
+/* ============================================
+   CONTEÚDO PRINCIPAL
+   ============================================ */
 main {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
 
+/* ============================================
+   GRADE DE CURSOS (CSS GRID)
+   ============================================ */
 .cursos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -78,24 +96,32 @@ main {
     padding: 2rem 0;
 }
 
+/* ============================================
+   CARDS DE CURSO
+   ============================================ */
 .curso-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .curso-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* ============================================
+   CONTEÚDO DO CARD
+   ============================================ */
 .curso-card-content {
-    padding: 1.5rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -108,67 +134,102 @@ main {
     flex-direction: column;
 }
 
+/* ============================================
+   HIERARQUIA VISUAL - TÍTULO
+   ============================================ */
 .curso-card h2 {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    font-size: 1.25rem;
+    color: #1a252f;
+    margin: 0 0 0.75rem 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
     flex-shrink: 0;
+    font-family: 'Poppins', sans-serif;
 }
 
+/* ============================================
+   HIERARQUIA VISUAL - DESCRIÇÃO
+   ============================================ */
 .curso-card p {
-    color: #666;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-    line-height: 1.6;
+    color: #5a6c7d;
+    margin: 0 0 1.25rem 0;
+    font-size: 0.9375rem;
+    line-height: 1.7;
     flex-grow: 1;
+    font-weight: 400;
 }
 
+/* ============================================
+   HIERARQUIA VISUAL - INFORMAÇÕES
+   ============================================ */
 .curso-card .curso-info {
-    color: #666;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
+    color: #6b7c8f;
+    font-size: 0.875rem;
+    margin: 0.5rem 0 0 0;
     flex-shrink: 0;
+    font-weight: 400;
+    line-height: 1.6;
 }
 
 .curso-card .curso-info strong {
     color: #2c3e50;
+    font-weight: 600;
 }
 
+/* ============================================
+   BOTÃO DE ACESSO
+   ============================================ */
 .curso-card .btn-acessar {
     display: block;
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3498db 100%);
-    color: white;
-    padding: 0.75rem 1.5rem;
+    color: #ffffff;
+    padding: 0.875rem 1.5rem;
     text-decoration: none;
-    border-radius: 4px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: auto;
     margin-bottom: 0;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 0.9375rem;
     text-align: center;
     width: 100%;
     box-sizing: border-box;
     flex-shrink: 0;
+    letter-spacing: 0.01em;
 }
 
 .curso-card .btn-acessar:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(30, 60, 114, 0.3);
+    box-shadow: 0 6px 16px rgba(30, 60, 114, 0.25);
 }
 
+.curso-card .btn-acessar:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   MENSAGEM VAZIA
+   ============================================ */
 .mensagem-vazia {
     text-align: center;
-    color: #666;
-    padding: 2rem;
-    font-size: 1.1rem;
+    color: #6b7c8f;
+    padding: 3rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 400;
 }
 
+/* ============================================
+   PÁGINA DE DETALHES DO CURSO
+   ============================================ */
 .curso-detalhes {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 2.5rem;
     margin: 2rem 0;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .curso-detalhes img {
@@ -180,36 +241,46 @@ main {
 }
 
 .curso-detalhes h2 {
-    color: #2c3e50;
+    color: #1a252f;
     margin-bottom: 1rem;
     font-size: 2rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: -0.02em;
 }
 
 .curso-detalhes .curso-info {
     margin-bottom: 1rem;
-    color: #666;
+    color: #5a6c7d;
+    font-size: 0.9375rem;
+    line-height: 1.8;
 }
 
 .curso-detalhes .curso-info strong {
     color: #2c3e50;
+    font-weight: 600;
 }
 
 .curso-detalhes .curso-descricao {
     margin-top: 1.5rem;
     line-height: 1.8;
+    color: #5a6c7d;
 }
 
 .curso-detalhes h3 {
-    color: #2c3e50;
+    color: #1a252f;
     margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.375rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
 }
 
 .curso-detalhes .ementa-lista {
     margin-left: 1.5rem;
     margin-top: 0.5rem;
     line-height: 1.8;
+    color: #5a6c7d;
 }
 
 .curso-detalhes .ementa-lista li {
@@ -227,55 +298,72 @@ main {
     display: inline-block;
     background-color: #27ae60;
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.75rem;
     text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: 600;
+    font-size: 0.9375rem;
 }
 
 .curso-detalhes .btn-matricula:hover {
     background-color: #229954;
+    transform: translateY(-1px);
 }
 
 .curso-detalhes .btn-voltar {
     display: inline-block;
     background-color: #95a5a6;
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.75rem;
     text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: 500;
+    font-size: 0.9375rem;
 }
 
 .curso-detalhes .btn-voltar:hover {
     background-color: #7f8c8d;
+    transform: translateY(-1px);
 }
 
+/* ============================================
+   FOOTER
+   ============================================ */
 footer {
     background-color: #2c3e50;
-    color: white;
+    color: #ecf0f1;
     text-align: center;
-    padding: 1rem 0;
-    margin-top: 3rem;
+    padding: 1.5rem 0;
+    margin-top: 4rem;
+    font-size: 0.875rem;
 }
 
-/* Responsividade - Tablets */
+/* ============================================
+   RESPONSIVIDADE - TABLETS
+   ============================================ */
 @media (max-width: 992px) {
     .cursos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.75rem;
+    }
+    
+    .curso-card-content {
+        padding: 1.75rem;
     }
 }
 
-/* Responsividade - Mobile */
+/* ============================================
+   RESPONSIVIDADE - MOBILE
+   ============================================ */
 @media (max-width: 768px) {
     header {
-        padding: 1rem 0;
+        padding: 1.25rem 0;
     }
     
     .header-container {
-        padding: 0 1rem;
+        padding: 0 1.5rem;
         gap: 1rem;
         flex-wrap: wrap;
     }
@@ -288,26 +376,39 @@ footer {
         font-size: 1.4rem;
     }
     
+    main {
+        padding: 0 1rem;
+    }
+    
     .cursos-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
-        padding: 1rem 0;
+        padding: 1.5rem 0;
     }
     
-    main {
-        padding: 0 0.5rem;
+    .curso-card {
+        border-radius: 10px;
     }
     
     .curso-card-content {
-        padding: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .curso-card h2 {
+        font-size: 1.25rem;
+    }
+    
+    .curso-card p {
+        font-size: 0.9375rem;
     }
     
     .curso-detalhes {
-        padding: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
     }
     
     .curso-detalhes h2 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
     }
     
     .curso-botoes {
@@ -321,7 +422,9 @@ footer {
     }
 }
 
-/* Responsividade - Mobile pequeno */
+/* ============================================
+   RESPONSIVIDADE - MOBILE PEQUENO
+   ============================================ */
 @media (max-width: 480px) {
     .header-container {
         flex-direction: column;
@@ -337,8 +440,47 @@ footer {
         text-align: center;
     }
     
+    main {
+        padding: 0 0.75rem;
+    }
+    
+    .cursos-grid {
+        gap: 1.25rem;
+        padding: 1.25rem 0;
+    }
+    
+    .curso-card-content {
+        padding: 1.25rem;
+    }
+    
     .curso-card h2 {
-        font-size: 1.1rem;
+        font-size: 1.125rem;
+        margin-bottom: 0.625rem;
+    }
+    
+    .curso-card p {
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .curso-card .curso-info {
+        font-size: 0.8125rem;
+    }
+    
+    .curso-card .btn-acessar {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .curso-detalhes {
+        padding: 1.25rem;
+    }
+    
+    .curso-detalhes h2 {
+        font-size: 1.5rem;
+    }
+    
+    .curso-detalhes h3 {
+        font-size: 1.25rem;
     }
 }
-

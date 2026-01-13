@@ -89,7 +89,7 @@ function renderizarDetalhesCurso() {
             <p>${curso.publico_alvo}</p>
         </div>
         <div class="curso-botoes">
-            <a href="${curso.link_matricula}" target="_blank" class="btn-matricula">Fazer Matrícula</a>
+            <a href="${curso.link_matricula}" target="_blank" rel="noopener noreferrer" class="btn-matricula">Matricular-se</a>
             <a href="index.html" class="btn-voltar">Voltar para a página principal</a>
         </div>
     `;

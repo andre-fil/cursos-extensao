@@ -84,20 +84,30 @@ async function enviarMensagem() {
             })
         });
         
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`Erro HTTP ${response.status}:`, errorText);
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
+        console.log('Status da resposta:', response.status);
+        console.log('OK?', response.ok);
+        console.log('Headers:', Object.fromEntries(response.headers.entries()));
         
-        const contentType = response.headers.get('content-type');
+        const contentType = response.headers.get('content-type') || '';
         let respostaTexto;
         
-        if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            respostaTexto = data.resposta || data.response || data.message || JSON.stringify(data);
-        } else {
-            respostaTexto = await response.text();
+        try {
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                console.log('Resposta JSON recebida:', data);
+                respostaTexto = data.resposta || data.response || data.message || data.text || (typeof data === 'string' ? data : JSON.stringify(data));
+            } else {
+                respostaTexto = await response.text();
+                console.log('Resposta texto recebida:', respostaTexto);
+            }
+        } catch (parseError) {
+            console.error('Erro ao ler resposta:', parseError);
+            throw new Error('Erro ao processar resposta do servidor');
+        }
+        
+        if (!response.ok) {
+            console.error(`Erro HTTP ${response.status}:`, respostaTexto);
+            throw new Error(`Erro HTTP ${response.status}: ${respostaTexto ? respostaTexto.substring(0, 100) : 'Sem detalhes'}`);
         }
         
         if (!respostaTexto || respostaTexto.trim() === '') {
@@ -108,15 +118,19 @@ async function enviarMensagem() {
         addMessage(respostaTexto, false);
         
     } catch (error) {
-        console.error('Erro ao enviar mensagem:', error);
+        console.error('Erro completo:', error);
+        console.error('Tipo do erro:', error.constructor.name);
+        console.error('Mensagem do erro:', error.message);
+        console.error('Stack:', error.stack);
+        
         loadingMessage.remove();
         
         let mensagemErro = 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.';
         
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             mensagemErro = 'Erro de conexão. Verifique sua internet e tente novamente.';
-        } else if (error.message.includes('CORS')) {
-            mensagemErro = 'Erro de configuração do servidor. Por favor, tente mais tarde.';
+        } else if (error.message.includes('HTTP')) {
+            mensagemErro = `Erro ${error.message}. Tente novamente.`;
         }
         
         addMessage(mensagemErro, false);

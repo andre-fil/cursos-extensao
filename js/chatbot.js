@@ -58,10 +58,10 @@ function addLoadingMessage() {
     return messageDiv;
 }
 
-async function sendMessage() {
-    const message = chatbotInput.value.trim();
+async function enviarMensagem() {
+    const textoDigitado = chatbotInput.value.trim();
     
-    if (!message) {
+    if (!textoDigitado) {
         return;
     }
     
@@ -69,7 +69,7 @@ async function sendMessage() {
     chatbotInput.disabled = true;
     chatbotSend.disabled = true;
     
-    addMessage(message, true);
+    addMessage(textoDigitado, true);
     
     const loadingMessage = addLoadingMessage();
     
@@ -77,22 +77,25 @@ async function sendMessage() {
         const response = await fetch(WEBHOOK_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: message
+                mensagem: textoDigitado
             })
         });
         
         if (!response.ok) {
-            throw new Error('Erro ao enviar mensagem');
+            throw new Error(`Erro HTTP: ${response.status}`);
         }
         
         const data = await response.json();
-        const botResponse = data.response || data.message || 'Desculpe, não consegui processar sua mensagem.';
+        
+        if (!data.resposta) {
+            throw new Error('Resposta inválida do servidor');
+        }
         
         loadingMessage.remove();
-        addMessage(botResponse, false);
+        addMessage(data.resposta, false);
         
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
@@ -111,13 +114,13 @@ chatbotClose.addEventListener('click', closeChatbot);
 chatbotInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !chatbotInput.disabled && chatbotInput.value.trim()) {
         e.preventDefault();
-        sendMessage();
+        enviarMensagem();
     }
 });
 
 chatbotSend.addEventListener('click', () => {
     if (!chatbotInput.disabled && chatbotInput.value.trim()) {
-        sendMessage();
+        enviarMensagem();
     }
 });
 

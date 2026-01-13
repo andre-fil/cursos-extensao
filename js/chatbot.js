@@ -85,22 +85,41 @@ async function enviarMensagem() {
         });
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Erro HTTP ${response.status}:`, errorText);
             throw new Error(`Erro HTTP: ${response.status}`);
         }
         
-        const data = await response.json();
+        const contentType = response.headers.get('content-type');
+        let respostaTexto;
         
-        if (!data.resposta) {
-            throw new Error('Resposta inválida do servidor');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            respostaTexto = data.resposta || data.response || data.message || JSON.stringify(data);
+        } else {
+            respostaTexto = await response.text();
+        }
+        
+        if (!respostaTexto || respostaTexto.trim() === '') {
+            throw new Error('Resposta vazia do servidor');
         }
         
         loadingMessage.remove();
-        addMessage(data.resposta, false);
+        addMessage(respostaTexto, false);
         
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
         loadingMessage.remove();
-        addMessage('Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.', false);
+        
+        let mensagemErro = 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.';
+        
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            mensagemErro = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (error.message.includes('CORS')) {
+            mensagemErro = 'Erro de configuração do servidor. Por favor, tente mais tarde.';
+        }
+        
+        addMessage(mensagemErro, false);
     } finally {
         chatbotInput.disabled = false;
         chatbotSend.disabled = false;

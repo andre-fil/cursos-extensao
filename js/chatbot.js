@@ -1,14 +1,11 @@
 const WEBHOOK_URL = 'https://andrebarreto-77.app.n8n.cloud/webhook/chatbot-cursos';
 
-const chatbotToggle = document.getElementById('chatbotToggle');
-const chatbotPanel = document.getElementById('chatbotPanel');
-const chatbotClose = document.getElementById('chatbotClose');
-const chatbotInput = document.getElementById('chatbotInput');
-const chatbotSend = document.getElementById('chatbotSend');
-const chatbotMessages = document.getElementById('chatbotMessages');
-
-chatbotInput.disabled = false;
-chatbotSend.disabled = false;
+let chatbotToggle;
+let chatbotPanel;
+let chatbotClose;
+let chatbotInput;
+let chatbotSend;
+let chatbotMessages;
 
 function toggleChatbot() {
     chatbotPanel.classList.toggle('active');
@@ -116,27 +113,44 @@ async function enviarMensagem() {
     }
 }
 
-chatbotToggle.addEventListener('click', toggleChatbot);
-chatbotClose.addEventListener('click', closeChatbot);
-
-chatbotInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !chatbotInput.disabled && chatbotInput.value.trim()) {
-        e.preventDefault();
-        enviarMensagem();
+document.addEventListener('DOMContentLoaded', () => {
+    chatbotToggle = document.getElementById('chatbotToggle');
+    chatbotPanel = document.getElementById('chatbotPanel');
+    chatbotClose = document.getElementById('chatbotClose');
+    chatbotInput = document.getElementById('chatbotInput');
+    chatbotSend = document.getElementById('chatbotSend');
+    chatbotMessages = document.getElementById('chatbotMessages');
+    
+    if (!chatbotToggle || !chatbotPanel || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) {
+        console.warn('Elementos do chatbot não encontrados. O chatbot não será inicializado.');
+        return;
     }
-});
-
-chatbotSend.addEventListener('click', () => {
-    if (!chatbotInput.disabled && chatbotInput.value.trim()) {
-        enviarMensagem();
-    }
-});
-
-document.addEventListener('click', (e) => {
-    if (chatbotPanel.classList.contains('active')) {
-        const isClickInside = chatbotPanel.contains(e.target) || chatbotToggle.contains(e.target);
-        if (!isClickInside) {
-            closeChatbot();
+    
+    chatbotInput.disabled = false;
+    chatbotSend.disabled = false;
+    
+    chatbotToggle.addEventListener('click', toggleChatbot);
+    chatbotClose.addEventListener('click', closeChatbot);
+    
+    chatbotInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !chatbotInput.disabled && chatbotInput.value.trim()) {
+            e.preventDefault();
+            enviarMensagem();
         }
-    }
+    });
+    
+    chatbotSend.addEventListener('click', () => {
+        if (!chatbotInput.disabled && chatbotInput.value.trim()) {
+            enviarMensagem();
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (chatbotPanel && chatbotPanel.classList.contains('active')) {
+            const isClickInside = chatbotPanel.contains(e.target) || chatbotToggle.contains(e.target);
+            if (!isClickInside) {
+                closeChatbot();
+            }
+        }
+    });
 });

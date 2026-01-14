@@ -59,7 +59,7 @@ window.cursos = window.cursos || [
             "Métricas e KPIs de vendas"
         ],
         publico_alvo: "Vendedores, representantes comerciais, gestores de vendas e profissionais que desejam aprimorar suas habilidades comerciais.",
-        link_matricula: "https://ead.femaf.com.br"
+        link_matricula: "https://ead.femaf.com.br/enrol/instances.php?id=1927"
     },
     {
         id: "EXT-004",

@@ -50,16 +50,14 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Vendas",
         ementa: [
-            "Fundamentos de vendas e técnicas de abordagem",
-            "Prospecção e qualificação de leads",
-            "Processo de vendas e fechamento",
-            "Negociação e objeções",
-            "Gestão de carteira de clientes",
-            "CRM e ferramentas de vendas",
-            "Métricas e KPIs de vendas"
+            "Planejamento de Vendas",
+            "Estratégias de Vendas",
+            "Tendências em Vendas",
+            "Estratégias de Marketing e as Atividades de Vendas",
+            "Controle e Avaliação da Força de Vendas"
         ],
         publico_alvo: "Vendedores, representantes comerciais, gestores de vendas e profissionais que desejam aprimorar suas habilidades comerciais.",
-        link_matricula: "https://ead.femaf.com.br/enrol/instances.php?id=1927"
+        link_matricula: "https://ead.femaf.com.br/course/view.php?id=1927"
     },
     {
         id: "EXT-004",

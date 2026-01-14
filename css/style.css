@@ -242,6 +242,73 @@ main {
 }
 
 /* ============================================
+   SEÇÃO DE FILTROS
+   ============================================ */
+.filtros-section {
+    padding: 2rem 0 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.filtros-container {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filtro-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filtro-item label {
+    display: block;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.filtro-input,
+.filtro-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.filtro-input:focus,
+.filtro-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filtro-input::placeholder {
+    color: #94a3b8;
+}
+
+.filtro-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e293b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+/* ============================================
    GRADE DE CURSOS (CSS GRID)
    ============================================ */
 .cursos-grid {
@@ -415,12 +482,27 @@ main {
 
 .curso-detalhes h2 {
     color: #0f172a;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     font-size: 2.25rem;
     font-weight: 700;
     font-family: 'Poppins', sans-serif;
     letter-spacing: -0.025em;
     line-height: 1.2;
+}
+
+.curso-area-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .curso-detalhes .curso-info {
@@ -843,6 +925,15 @@ footer {
    RESPONSIVIDADE - TABLETS
    ============================================ */
 @media (max-width: 992px) {
+    .filtros-section {
+        padding: 1.5rem 1.5rem 1rem;
+    }
+    
+    .filtros-container {
+        gap: 1.5rem;
+        padding: 1.25rem;
+    }
+    
     .intro-section {
         min-height: 500px;
         padding: 5rem 1rem 4rem 1rem;
@@ -899,6 +990,20 @@ footer {
    RESPONSIVIDADE - MOBILE
    ============================================ */
 @media (max-width: 768px) {
+    .filtros-section {
+        padding: 1.25rem 1rem 0.75rem;
+    }
+    
+    .filtros-container {
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 1.25rem;
+    }
+    
+    .filtro-item {
+        min-width: 100%;
+    }
+    
     .intro-section {
         min-height: 500px;
         padding: 4.5rem 1rem 3rem 1rem;
@@ -979,6 +1084,12 @@ footer {
         font-size: 1.875rem;
     }
     
+    .curso-area-tag {
+        font-size: 0.8125rem;
+        padding: 0.4375rem 1rem;
+        margin-bottom: 1.25rem;
+    }
+    
     .curso-botoes {
         flex-direction: column;
     }
@@ -1011,6 +1122,25 @@ footer {
    RESPONSIVIDADE - MOBILE PEQUENO
    ============================================ */
 @media (max-width: 480px) {
+    .filtros-section {
+        padding: 1rem 0.75rem 0.5rem;
+    }
+    
+    .filtros-container {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .filtro-item label {
+        font-size: 0.85rem;
+    }
+    
+    .filtro-input,
+    .filtro-select {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.9rem;
+    }
+    
     .intro-section {
         min-height: 500px;
         padding: 4rem 1rem 2.5rem 1rem;
@@ -1138,6 +1268,12 @@ footer {
     
     .curso-detalhes h2 {
         font-size: 1.625rem;
+    }
+    
+    .curso-area-tag {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.875rem;
+        margin-bottom: 1rem;
     }
     
     .curso-detalhes h3 {

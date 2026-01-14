@@ -52,10 +52,43 @@ function criarCardCurso(curso) {
 }
 
 /**
- * Renderiza todos os cursos na grade
- * Busca os dados do arquivo data.js (variável global cursos)
+ * Filtra os cursos com base nos critérios de busca
+ * @param {Array} cursos - Array de cursos para filtrar
+ * @param {string} nomeFiltro - Texto para filtrar por nome
+ * @param {string} areaFiltro - Área para filtrar
+ * @returns {Array} Array de cursos filtrados
  */
-function renderizarCursos() {
+function filtrarCursos(cursos, nomeFiltro, areaFiltro) {
+    return cursos.filter(curso => {
+        const nomeMatch = !nomeFiltro || curso.titulo.toLowerCase().includes(nomeFiltro.toLowerCase());
+        const areaMatch = !areaFiltro || curso.area === areaFiltro;
+        return nomeMatch && areaMatch;
+    });
+}
+
+/**
+ * Preenche o select de áreas com as áreas disponíveis
+ */
+function preencherAreas() {
+    const filtroArea = document.getElementById('filtro-area');
+    if (!filtroArea || !window.cursos) return;
+    
+    const areas = [...new Set(window.cursos.map(curso => curso.area).filter(area => area))];
+    areas.sort();
+    
+    areas.forEach(area => {
+        const option = document.createElement('option');
+        option.value = area;
+        option.textContent = area;
+        filtroArea.appendChild(option);
+    });
+}
+
+/**
+ * Renderiza os cursos na grade (com filtragem opcional)
+ * @param {Array} cursosParaRenderizar - Array de cursos a serem renderizados (opcional)
+ */
+function renderizarCursos(cursosParaRenderizar = null) {
     // Obter o container da grade
     const cursosGrid = document.getElementById('cursos-grid');
     
@@ -71,21 +104,38 @@ function renderizarCursos() {
         return;
     }
     
+    // Usar cursos fornecidos ou todos os cursos
+    const cursos = cursosParaRenderizar || window.cursos;
+    
     // Limpar o container antes de adicionar os cards
     cursosGrid.innerHTML = '';
     
+    if (cursos.length === 0) {
+        cursosGrid.innerHTML = '<p class="mensagem-vazia">Nenhum curso encontrado com os filtros aplicados.</p>';
+        return;
+    }
+    
     // Criar e adicionar um card para cada curso
-    window.cursos.forEach(curso => {
+    cursos.forEach(curso => {
         const card = criarCardCurso(curso);
         cursosGrid.appendChild(card);
-        // Debug: verificar se o botão foi criado
-        const botao = card.querySelector('.btn-acessar');
-        if (!botao) {
-            console.error('Botão não encontrado no card:', curso.titulo);
-        } else {
-            console.log('Botão criado com sucesso para:', curso.titulo);
-        }
     });
+}
+
+/**
+ * Aplica os filtros e renderiza os cursos
+ */
+function aplicarFiltros() {
+    const filtroNome = document.getElementById('filtro-nome');
+    const filtroArea = document.getElementById('filtro-area');
+    
+    if (!filtroNome || !filtroArea || !window.cursos) return;
+    
+    const nomeFiltro = filtroNome.value.trim();
+    const areaFiltro = filtroArea.value;
+    
+    const cursosFiltrados = filtrarCursos(window.cursos, nomeFiltro, areaFiltro);
+    renderizarCursos(cursosFiltrados);
 }
 
 /**
@@ -96,6 +146,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Aguardar um pequeno delay para garantir que data.js foi carregado
     // Isso é necessário porque os scripts são carregados de forma assíncrona
     setTimeout(() => {
+        preencherAreas();
         renderizarCursos();
+        
+        // Adicionar event listeners para os filtros
+        const filtroNome = document.getElementById('filtro-nome');
+        const filtroArea = document.getElementById('filtro-area');
+        
+        if (filtroNome) {
+            filtroNome.addEventListener('input', aplicarFiltros);
+        }
+        
+        if (filtroArea) {
+            filtroArea.addEventListener('change', aplicarFiltros);
+        }
     }, 100);
 });

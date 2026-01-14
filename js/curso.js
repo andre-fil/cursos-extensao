@@ -69,8 +69,11 @@ function renderizarDetalhesCurso() {
     
     document.title = `${curso.titulo} - Cursos de Extensão`;
     
+    const areaTag = curso.area ? `<span class="curso-area-tag">${curso.area}</span>` : '';
+    
     cursoDetalhes.innerHTML = `
         <h2>${curso.titulo}</h2>
+        ${areaTag}
         <div class="curso-info">
             <p><strong>Duração:</strong> ${curso.duracao}</p>
             <p><strong>Carga Horária:</strong> ${curso.carga_horaria} horas</p>

@@ -8,6 +8,7 @@ window.cursos = window.cursos || [
         duracao: "8 semanas",
         carga_horaria: 40,
         modalidade: "EAD",
+        area: "Tecnologia",
         ementa: [
             "Fundamentos de HTML5 e estrutura semântica",
             "Estilização com CSS3 e layouts responsivos",
@@ -16,7 +17,7 @@ window.cursos = window.cursos || [
             "Projeto prático: criação de página web completa"
         ],
         publico_alvo: "Interessados em iniciar na área de desenvolvimento web, estudantes e profissionais que desejam aprender programação.",
-        link_matricula: "https://www.exemplo.com/matricula/ext-001"
+        link_matricula: "https://ead.femaf.com.br"
     },
     {
         id: "EXT-002",
@@ -25,6 +26,7 @@ window.cursos = window.cursos || [
         duracao: "6 semanas",
         carga_horaria: 30,
         modalidade: "EAD",
+        area: "Gestão",
         ementa: [
             "Conceitos fundamentais de gestão de projetos",
             "Metodologias ágeis: Scrum, Kanban e Lean",
@@ -33,7 +35,7 @@ window.cursos = window.cursos || [
             "Caso prático: aplicação em projeto real"
         ],
         publico_alvo: "Gestores, coordenadores, líderes de equipe e profissionais que trabalham com projetos em qualquer área.",
-        link_matricula: "https://www.exemplo.com/matricula/ext-002"
+        link_matricula: "https://ead.femaf.com.br"
     },
     {
         id: "EXT-003",
@@ -42,6 +44,7 @@ window.cursos = window.cursos || [
         duracao: "7 semanas",
         carga_horaria: 35,
         modalidade: "EAD",
+        area: "Marketing",
         ementa: [
             "Fundamentos do marketing digital",
             "SEO e otimização para mecanismos de busca",
@@ -51,7 +54,7 @@ window.cursos = window.cursos || [
             "Plano de marketing digital"
         ],
         publico_alvo: "Empreendedores, profissionais de marketing, comunicadores e gestores que desejam potencializar a presença digital.",
-        link_matricula: "https://www.exemplo.com/matricula/ext-003"
+        link_matricula: "https://ead.femaf.com.br"
     },
     {
         id: "EXT-004",
@@ -60,6 +63,7 @@ window.cursos = window.cursos || [
         duracao: "5 semanas",
         carga_horaria: 25,
         modalidade: "EAD",
+        area: "Tecnologia",
         ementa: [
             "Funções avançadas do Excel: PROC.V, ÍNDICE, CORRESP",
             "Tabelas e gráficos dinâmicos",
@@ -68,7 +72,7 @@ window.cursos = window.cursos || [
             "Dashboard interativo e relatórios automatizados"
         ],
         publico_alvo: "Profissionais que já possuem conhecimento básico de Excel e desejam aprofundar habilidades para análise de dados e automação.",
-        link_matricula: "https://www.exemplo.com/matricula/ext-004"
+        link_matricula: "https://ead.femaf.com.br"
     }
 ];
 

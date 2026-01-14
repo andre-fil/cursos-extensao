@@ -85,12 +85,24 @@ async function enviarMensagem() {
             throw new Error('Erro HTTP');
         }
         
-        const data = await response.json();
+        // SEMPRE leia como texto primeiro
+        const rawText = await response.text();
+        console.log('Resposta bruta do servidor:', rawText);
         
-        if (!data.resposta) {
-            throw new Error('Resposta inválida do servidor');
+        // Depois tente converter para JSON
+        let data;
+        try {
+            data = JSON.parse(rawText);
+        } catch (e) {
+            throw new Error('Resposta do servidor não é JSON válido');
         }
         
+        // Validação REALISTA
+        if (!data || typeof data.resposta !== 'string') {
+            throw new Error('Campo \'resposta\' não encontrado no retorno');
+        }
+        
+        // USO CORRETO
         loadingMessage.remove();
         addMessage(data.resposta, false);
         

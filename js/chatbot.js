@@ -97,14 +97,16 @@ async function enviarMensagem() {
             throw new Error('Resposta do servidor não é JSON válido');
         }
         
-        // Validação REALISTA
-        if (!data || typeof data.resposta !== 'string') {
-            throw new Error('Campo \'resposta\' não encontrado no retorno');
+        // Validação REALISTA - aceita 'resposta' ou 'text'
+        const respostaTexto = data.resposta || data.text;
+        
+        if (!data || typeof respostaTexto !== 'string') {
+            throw new Error('Campo \'resposta\' ou \'text\' não encontrado no retorno');
         }
         
         // USO CORRETO
         loadingMessage.remove();
-        addMessage(data.resposta, false);
+        addMessage(respostaTexto, false);
         
     } catch (error) {
         console.error('Erro no chat:', error);

@@ -56,9 +56,9 @@ function addLoadingMessage() {
 }
 
 async function enviarMensagem() {
-    const textoDigitado = chatbotInput.value.trim();
+    const mensagem = chatbotInput.value.trim();
     
-    if (!textoDigitado) {
+    if (!mensagem) {
         return;
     }
     
@@ -66,7 +66,7 @@ async function enviarMensagem() {
     chatbotInput.disabled = true;
     chatbotSend.disabled = true;
     
-    addMessage(textoDigitado, true);
+    addMessage(mensagem, true);
     
     const loadingMessage = addLoadingMessage();
     
@@ -77,70 +77,27 @@ async function enviarMensagem() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                chatInput: textoDigitado
+                chatInput: mensagem
             })
         });
         
-        console.log('Status da resposta:', response.status);
-        console.log('Response OK:', response.ok);
-        
         if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Erro desconhecido');
-            console.error('Erro HTTP:', response.status, errorText);
-            throw new Error(`Erro HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+            throw new Error('Erro HTTP');
         }
         
-        const contentType = response.headers.get('content-type') || '';
-        console.log('Content-Type:', contentType);
+        const data = await response.json();
         
-        let respostaTexto = '';
-        
-        try {
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
-                console.log('Resposta JSON completa:', data);
-                respostaTexto = data.resposta || data.response || data.message || data.text || data.answer || '';
-                
-                if (!respostaTexto && typeof data === 'object') {
-                    const keys = Object.keys(data);
-                    if (keys.length > 0) {
-                        respostaTexto = data[keys[0]] || JSON.stringify(data);
-                    }
-                }
-            } else {
-                respostaTexto = await response.text();
-                console.log('Resposta texto:', respostaTexto);
-            }
-        } catch (parseError) {
-            console.error('Erro ao processar resposta:', parseError);
-            throw new Error('Erro ao processar resposta do servidor');
-        }
-        
-        if (!respostaTexto || respostaTexto.trim() === '') {
-            console.warn('Resposta vazia recebida');
-            throw new Error('Resposta vazia do servidor');
+        if (!data.resposta) {
+            throw new Error('Resposta inválida do servidor');
         }
         
         loadingMessage.remove();
-        addMessage(respostaTexto, false);
+        addMessage(data.resposta, false);
         
     } catch (error) {
-        console.error('Erro completo ao enviar mensagem:', error);
-        console.error('Tipo do erro:', error.name);
-        console.error('Mensagem:', error.message);
+        console.error('Erro no chat:', error);
         loadingMessage.remove();
-        
-        let mensagemErro = 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.';
-        
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            mensagemErro = 'Erro de conexão. Verifique sua internet e tente novamente.';
-        } else if (error.message.includes('HTTP')) {
-            mensagemErro = `Erro ao comunicar com o servidor. Tente novamente em alguns instantes.`;
-        } else if (error.message.includes('vazia')) {
-            mensagemErro = 'O servidor não retornou uma resposta válida. Tente novamente.';
-        }
-        
-        addMessage(mensagemErro, false);
+        addMessage('Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.', false);
     } finally {
         chatbotInput.disabled = false;
         chatbotSend.disabled = false;

@@ -80,26 +80,6 @@ window.cursos = window.cursos || [
         link_matricula: "https://ead.femaf.com.br"
     },
     {
-        id: "EXT-005",
-        titulo: "Administração Hospitalar",
-        descricao_curta: "Aprenda a gerenciar instituições de saúde com eficiência, qualidade e foco na excelência do atendimento ao paciente.",
-        duracao: "8 semanas",
-        carga_horaria: 40,
-        modalidade: "EAD",
-        area: "Gestão",
-        ementa: [
-            "Fundamentos da administração hospitalar",
-            "Gestão de recursos em saúde",
-            "Qualidade e acreditação hospitalar",
-            "Gestão de pessoas na área da saúde",
-            "Controle de custos e orçamento hospitalar",
-            "Legislação sanitária e regulamentações",
-            "Tecnologia da informação em saúde"
-        ],
-        publico_alvo: "Administradores, gestores hospitalares, enfermeiros, médicos e profissionais da área da saúde que atuam ou desejam atuar na gestão hospitalar.",
-        link_matricula: "https://ead.femaf.com.br"
-    },
-    {
         id: "EXT-006",
         titulo: "Administração de Medicamentos",
         descricao_curta: "Conheça os procedimentos seguros e as melhores práticas para administração de medicamentos em diferentes contextos de cuidado.",
@@ -288,13 +268,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Educação",
         ementa: [
-            "Fundamentos dos distúrbios de aprendizagem",
-            "Dislexia, disgrafia e discalculia",
-            "TDAH e dificuldades de atenção",
-            "Avaliação e diagnóstico",
-            "Estratégias de intervenção pedagógica",
-            "Tecnologias assistivas",
-            "Trabalho multidisciplinar e família"
+            "As dificuldades escolares e os distúrbios de aprendizagem",
+            "Dificuldades de aprendizagem e o ensino",
+            "O trabalho pedagógico diante dos distúrbios de aprendizagem",
+            "Transtornos e distúrbios de aprendizagem em crianças na educação infantil",
+            "Alunos com necessidades educacionais especiais: distúrbios de aprendizagem associados à linguagem e à comunicação"
         ],
         publico_alvo: "Professores, pedagogos, psicopedagogos, psicólogos escolares, fonoaudiólogos e profissionais da educação que trabalham com dificuldades de aprendizagem.",
         link_matricula: "https://ead.femaf.com.br"
@@ -308,13 +286,10 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Educação",
         ementa: [
-            "Fundamentos de neuroeducação",
-            "Como o cérebro aprende",
-            "Tecnologias educacionais e ferramentas digitais",
-            "Design instrucional baseado em neurociência",
-            "Gamificação e aprendizagem",
-            "Ambientes virtuais de aprendizagem",
-            "Avaliação e feedback em ambientes digitais"
+            "Novas exigências educacionais e profissão docente",
+            "A aprendizagem dos conteúdos escolares",
+            "As dificuldades escolares e os distúrbios de aprendizagem",
+            "Apontamentos para um sistema melhor: inclusão de novas tecnologias e processos educacionais"
         ],
         publico_alvo: "Professores, pedagogos, designers instrucionais, coordenadores pedagógicos e profissionais da educação interessados em inovação educacional.",
         link_matricula: "https://ead.femaf.com.br"
@@ -328,15 +303,38 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Educação",
         ementa: [
-            "Fundamentos do secretariado escolar",
-            "Gestão documental e arquivo",
-            "Processos de matrícula e transferência",
-            "Registro e histórico escolar",
-            "Comunicação com pais e responsáveis",
-            "Sistemas de gestão escolar",
-            "Legislação educacional aplicada"
+            "Perfil profissional e atribuições do secretário escolar",
+            "A secretaria escolar e a gestão de documentos escolares",
+            "Principais documentos escolares que devem ser registrados e arquivados",
+            "A legislação sobre o arquivamento e o descarte de documentos escolares",
+            "Registro e identidade escolar de cada aluno"
         ],
         publico_alvo: "Secretários escolares, assistentes administrativos, coordenadores e profissionais que atuam ou desejam atuar na área administrativa de instituições de ensino.",
+        link_matricula: "https://ead.femaf.com.br/course/view.php?id=1928"
+    },
+    {
+        id: "EXT-018",
+        titulo: "Perícia, Avaliação e Arbitragem",
+        descricao_curta: "Desenvolva competências para atuar como perito contábil, avaliador de bens e serviços, e árbitro em processos de resolução de conflitos.",
+        duracao: "8 semanas",
+        carga_horaria: 40,
+        modalidade: "EAD",
+        area: "Contabilidade",
+        ementa: [
+            "Conceitos de perícia contábil",
+            "Perfil profissional do perito: ética e responsabilidades",
+            "Tópicos contemporâneos de perícia contábil",
+            "Normas brasileiras sobre perícias contábeis",
+            "A perícia contábil em apuração de haveres",
+            "Avaliação de bens, serviços e empresas",
+            "Ciclo de perícia contábil",
+            "Arbitragem",
+            "Honorários periciais",
+            "Câmaras",
+            "Mediação e arbitragem: procedimentos",
+            "Mediação"
+        ],
+        publico_alvo: "Contadores, peritos contábeis, avaliadores, árbitros, profissionais do direito e pessoas interessadas em perícia contábil e resolução alternativa de conflitos.",
         link_matricula: "https://ead.femaf.com.br"
     }
 ];

@@ -10,13 +10,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Empreendedorismo",
         ementa: [
-            "Fundamentos do empreendedorismo",
-            "Identificação de oportunidades de negócio",
-            "Plano de negócios e modelagem",
-            "Gestão financeira para empreendedores",
-            "Marketing e vendas para pequenos negócios",
-            "Gestão de pessoas e liderança",
-            "Inovação e diferenciação competitiva"
+            "O empreendedorismo",
+            "Tipos de empreendedorismo",
+            "Perfil e comportamento empreendedores",
+            "Empreendedorismo social",
+            "Empreendedorismo corporativo"
         ],
         publico_alvo: "Aspiring entrepreneurs, profissionais que desejam abrir seu próprio negócio, estudantes e pessoas interessadas em desenvolver habilidades empreendedoras.",
         link_matricula: "https://ead.femaf.com.br"
@@ -30,13 +28,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Gestão",
         ementa: [
-            "Fundamentos de gestão de pessoas",
-            "Recrutamento e seleção de talentos",
+            "Fundamentos da psicologia organizacional e do trabalho",
+            "A importância da gestão de recursos humanos I",
+            "Recrutamento e seleção",
             "Treinamento e desenvolvimento",
-            "Avaliação de desempenho",
-            "Gestão de carreiras",
-            "Clima organizacional e engajamento",
-            "Legislação trabalhista aplicada"
+            "Relações trabalhistas"
         ],
         publico_alvo: "Profissionais de RH, gestores, coordenadores e pessoas interessadas em atuar na área de recursos humanos.",
         link_matricula: "https://ead.femaf.com.br"
@@ -68,13 +64,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Direito",
         ementa: [
-            "Fundamentos da mediação e arbitragem",
-            "Técnicas de comunicação e escuta ativa",
-            "Processo de mediação de conflitos",
-            "Arbitragem e procedimentos arbitrais",
-            "Legislação aplicada à mediação e arbitragem",
-            "Casos práticos e simulações",
-            "Ética profissional do mediador e árbitro"
+            "Arbitragem",
+            "Mediação",
+            "Mediação, conciliação e arbitragem: conceitos",
+            "Mediação e arbitragem: procedimentos",
+            "Mediação e arbitragem: fundamentação legal"
         ],
         publico_alvo: "Advogados, profissionais do direito, gestores, psicólogos e pessoas interessadas em resolução alternativa de conflitos.",
         link_matricula: "https://ead.femaf.com.br"
@@ -168,13 +162,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Marketing",
         ementa: [
-            "Fundamentos de marketing em redes sociais",
-            "Estratégias para Facebook, Instagram, LinkedIn e TikTok",
-            "Criação de conteúdo e calendário editorial",
-            "Community management e engajamento",
-            "Anúncios pagos em redes sociais",
-            "Métricas e analytics de redes sociais",
-            "Crises e gestão de reputação online"
+            "Redes sociais",
+            "Gestão de redes sociais",
+            "Marketing nas redes sociais",
+            "Assessoria de comunicação nas redes sociais",
+            "O cenário das fake news em uma perspectiva crítica"
         ],
         publico_alvo: "Social media managers, profissionais de marketing digital, empreendedores, comunicadores e pessoas interessadas em gestão de redes sociais.",
         link_matricula: "https://ead.femaf.com.br"
@@ -188,13 +180,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Finanças",
         ementa: [
-            "Fundamentos de fluxo de caixa",
-            "Projeção e planejamento financeiro",
-            "Controle de receitas e despesas",
-            "Gestão de capital de giro",
-            "Análise de indicadores financeiros",
-            "Ferramentas e planilhas de controle",
-            "Tomada de decisão baseada em dados financeiros"
+            "Fluxo de caixa",
+            "Fluxo e orçamento de caixa",
+            "Demonstração do fluxo de caixa",
+            "Análise de risco e fluxo de caixa",
+            "Fluxo de caixa em cooperativas"
         ],
         publico_alvo: "Empreendedores, gestores financeiros, contadores, administradores e profissionais que precisam gerenciar o fluxo de caixa de negócios.",
         link_matricula: "https://ead.femaf.com.br"
@@ -208,13 +198,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Tecnologia",
         ementa: [
-            "Fundamentos de administração de servidores",
-            "Sistemas operacionais Linux e Windows Server",
-            "Configuração de serviços de rede",
-            "Segurança de servidores e hardening",
-            "Monitoramento e manutenção",
-            "Virtualização e containers",
-            "Backup e recuperação de desastres"
+            "Gerenciamento de servidores de rede com sistemas proprietários",
+            "Servidores web (Apache Tomcat)",
+            "Instalação de sistemas open source em servidores de rede",
+            "Servidores de página e de aplicação",
+            "Gerenciamento de servidores de rede com sistemas open source"
         ],
         publico_alvo: "Administradores de sistemas, profissionais de TI, desenvolvedores e pessoas interessadas em infraestrutura e administração de servidores.",
         link_matricula: "https://ead.femaf.com.br"
@@ -228,13 +216,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Finanças",
         ementa: [
-            "Fundamentos de administração financeira",
-            "Planejamento orçamentário",
-            "Controle e acompanhamento orçamentário",
-            "Análise de viabilidade financeira",
-            "Gestão de custos e despesas",
-            "Indicadores financeiros e KPIs",
-            "Relatórios gerenciais e tomada de decisão"
+            "Introdução à administração financeira",
+            "Sistema financeiro e orçamentário estadual",
+            "Administração financeira de empresas familiares",
+            "Elaboração de quadro orçamentário",
+            "Classificação orçamentária: receita e despesa"
         ],
         publico_alvo: "Gestores financeiros, administradores, contadores, analistas financeiros e profissionais que atuam na gestão orçamentária.",
         link_matricula: "https://ead.femaf.com.br"
@@ -248,13 +234,11 @@ window.cursos = window.cursos || [
         modalidade: "EAD",
         area: "Marketing",
         ementa: [
-            "Fundamentos de administração mercadológica",
-            "Pesquisa de mercado e análise de consumidores",
-            "Planejamento estratégico de marketing",
-            "Mix de marketing (4Ps)",
-            "Gestão de produtos e marcas",
-            "Canais de distribuição",
-            "Avaliação de desempenho mercadológico"
+            "Cenários mercadológicos",
+            "Instrumentos da comunicação mercadológica",
+            "O composto mercadológico",
+            "Planejamento mercadológico: objetivos e características",
+            "Marketing integrado"
         ],
         publico_alvo: "Profissionais de marketing, gestores comerciais, administradores, empreendedores e pessoas interessadas em gestão mercadológica.",
         link_matricula: "https://ead.femaf.com.br"

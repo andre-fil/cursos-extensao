@@ -73,7 +73,9 @@ function preencherAreas() {
     const filtroArea = document.getElementById('filtro-area');
     if (!filtroArea || !window.cursos) return;
     
-    const areas = [...new Set(window.cursos.map(curso => curso.area).filter(area => area))];
+    // Filtrar apenas cursos disponíveis para preencher as áreas
+    const cursosDisponiveis = window.cursos.filter(curso => curso.disponivel !== false);
+    const areas = [...new Set(cursosDisponiveis.map(curso => curso.area).filter(area => area))];
     areas.sort();
     
     areas.forEach(area => {
@@ -85,7 +87,7 @@ function preencherAreas() {
 }
 
 /**
- * Renderiza os cursos na grade (com filtragem opcional)
+ * Renderiza os cursos na grade agrupados por categoria (com filtragem opcional)
  * @param {Array} cursosParaRenderizar - Array de cursos a serem renderizados (opcional)
  */
 function renderizarCursos(cursosParaRenderizar = null) {
@@ -104,8 +106,9 @@ function renderizarCursos(cursosParaRenderizar = null) {
         return;
     }
     
-    // Usar cursos fornecidos ou todos os cursos
-    const cursos = cursosParaRenderizar || window.cursos;
+    // Usar cursos fornecidos ou todos os cursos, filtrando apenas os disponíveis
+    const todosCursos = cursosParaRenderizar || window.cursos;
+    const cursos = todosCursos.filter(curso => curso.disponivel !== false);
     
     // Limpar o container antes de adicionar os cards
     cursosGrid.innerHTML = '';
@@ -115,10 +118,43 @@ function renderizarCursos(cursosParaRenderizar = null) {
         return;
     }
     
-    // Criar e adicionar um card para cada curso
+    // Agrupar cursos por área/categoria
+    const cursosPorArea = {};
     cursos.forEach(curso => {
-        const card = criarCardCurso(curso);
-        cursosGrid.appendChild(card);
+        const area = curso.area || 'Outros';
+        if (!cursosPorArea[area]) {
+            cursosPorArea[area] = [];
+        }
+        cursosPorArea[area].push(curso);
+    });
+    
+    // Ordenar as áreas
+    const areasOrdenadas = Object.keys(cursosPorArea).sort();
+    
+    // Criar seções hierárquicas para cada área
+    areasOrdenadas.forEach(area => {
+        // Criar seção da área
+        const secaoArea = document.createElement('section');
+        secaoArea.className = 'categoria-section';
+        
+        // Título da categoria
+        const tituloCategoria = document.createElement('h2');
+        tituloCategoria.className = 'categoria-titulo';
+        tituloCategoria.textContent = area;
+        secaoArea.appendChild(tituloCategoria);
+        
+        // Container para os cards da categoria
+        const categoriaGrid = document.createElement('div');
+        categoriaGrid.className = 'categoria-grid';
+        
+        // Adicionar cards dos cursos dessa categoria
+        cursosPorArea[area].forEach(curso => {
+            const card = criarCardCurso(curso);
+            categoriaGrid.appendChild(card);
+        });
+        
+        secaoArea.appendChild(categoriaGrid);
+        cursosGrid.appendChild(secaoArea);
     });
 }
 

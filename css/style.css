@@ -312,12 +312,36 @@ main {
    GRADE DE CURSOS (CSS GRID)
    ============================================ */
 .cursos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
     padding: 2rem 0;
     position: relative;
     z-index: 1;
+}
+
+/* ============================================
+   SEÇÕES DE CATEGORIA
+   ============================================ */
+.categoria-section {
+    margin-bottom: 3rem;
+}
+
+.categoria-titulo {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #3b82f6;
+    letter-spacing: -0.02em;
+}
+
+.categoria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
 }
 
 /* ============================================
@@ -976,9 +1000,13 @@ footer {
         height: 400px;
     }
     
-    .cursos-grid {
+    .categoria-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.75rem;
+    }
+    
+    .categoria-titulo {
+        font-size: 1.75rem;
     }
     
     .curso-card-content {
@@ -1054,9 +1082,18 @@ footer {
     }
     
     .cursos-grid {
+        gap: 2rem;
+        padding: 1.5rem 0;
+    }
+    
+    .categoria-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
-        padding: 1.5rem 0;
+    }
+    
+    .categoria-titulo {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     
     .curso-card {
@@ -1194,8 +1231,17 @@ footer {
     }
     
     .cursos-grid {
-        gap: 1.25rem;
+        gap: 1.5rem;
         padding: 1.25rem 0;
+    }
+    
+    .categoria-titulo {
+        font-size: 1.375rem;
+        margin-bottom: 1rem;
+    }
+    
+    .categoria-grid {
+        gap: 1.25rem;
     }
     
     .chatbot-container {

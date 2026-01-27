@@ -67,6 +67,14 @@ function renderizarDetalhesCurso() {
         return;
     }
     
+    if (curso.disponivel === false) {
+        cursoDetalhes.innerHTML = criarMensagemErro(
+            'Curso Indisponível Temporariamente',
+            `O curso "${curso.titulo}" está temporariamente indisponível. Por favor, retorne à página principal para ver outros cursos disponíveis.`
+        );
+        return;
+    }
+    
     document.title = `${curso.titulo} - Cursos de Extensão`;
     
     const areaTag = curso.area ? `<span class="curso-area-tag">${curso.area}</span>` : '';

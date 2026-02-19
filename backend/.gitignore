@@ -1,0 +1,12 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+# Arquivos de integração com Mercado Pago (configurações de produção)
+# Estes arquivos podem conter configurações sensíveis ou específicas de produção
+src/config/mercadopago.js
+src/config/env.js
+src/routes/checkout.js
+src/routes/webhook.js
+CONFIGURACAO_MERCADOPAGO.md

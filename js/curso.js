@@ -1,3 +1,51 @@
+/**
+ * Gera o nome do arquivo de imagem baseado no título do curso
+ * @param {string} titulo - Título do curso
+ * @returns {string} Nome do arquivo de imagem (sem extensão)
+ */
+function gerarNomeImagem(titulo) {
+    // Mapeamento direto dos títulos para os nomes dos arquivos
+    const mapeamento = {
+        'Empreendedorismo': 'Empreendedorismo',
+        'Gestão de Recursos Humanos': 'Gestão-de-Recursos-Humanos',
+        'Analista de Vendas': 'Analista-de-Vendas',
+        'Arbitragem e Mediação de Conflitos': 'Arbitragem-e-Mediação-de-Conflitos',
+        'Gestão de Redes Sociais': 'Gestão-de-Redes-Sociais',
+        'Fluxo de Caixa': 'Fluxo-de-Caixa',
+        'Administração de Servidores': 'Administração-de-Servidores',
+        'Administração Financeira e Orçamentária': 'Administração-Financeira-e-Orçamentária',
+        'Administração Mercadológica': 'Administração-Mercadológica',
+        'Distúrbios de Aprendizagem': 'Distúrbios-de-Aprendizagem',
+        'Neuroeducação e Tecnologias Educacionais': 'Neuroeducação-e-Tecnologias-Educacionais',
+        'Práticas do Secretariado Escolar': 'Práticas-do-Secretariado-Escolar',
+        'Perícia, Avaliação e Arbitragem': 'Perícia,-Avaliação-e-Arbitragem'
+    };
+    
+    return mapeamento[titulo] || null;
+}
+
+/**
+ * Cria o HTML da imagem do curso para a página de detalhes
+ * @param {Object} curso - Objeto contendo os dados do curso
+ * @returns {string} HTML da imagem ou espaço reservado
+ */
+function criarImagemDetalhes(curso) {
+    const nomeImagem = gerarNomeImagem(curso.titulo);
+    
+    if (!nomeImagem) {
+        // Retornar um div vazio para manter o espaço
+        return '<div class="curso-imagem-placeholder"></div>';
+    }
+    
+    // Usar onerror inline para substituir por placeholder se a imagem não existir
+    return `
+        <div class="curso-imagem-container">
+            <img src="img/${nomeImagem}-DESKTOP.png" alt="${curso.titulo}" class="curso-imagem curso-imagem-desktop" loading="lazy" onerror="this.style.display='none'; if(this.nextElementSibling && this.nextElementSibling.style.display==='none') { this.parentElement.innerHTML='<div class=\\'curso-imagem-placeholder\\'></div>'; }">
+            <img src="img/${nomeImagem}-MOBILE.png" alt="${curso.titulo}" class="curso-imagem curso-imagem-mobile" loading="lazy" onerror="this.style.display='none'; if(this.previousElementSibling && this.previousElementSibling.style.display==='none') { this.parentElement.innerHTML='<div class=\\'curso-imagem-placeholder\\'></div>'; }">
+        </div>
+    `;
+}
+
 function obterParametroURL(nome) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(nome);
@@ -30,6 +78,42 @@ function renderizarEmenta(ementa) {
             ${ementa.map(topico => `<li>${topico}</li>`).join('')}
         </ul>
     `;
+}
+
+function renderizarObjetivos(objetivos) {
+    if (!objetivos) {
+        return '';
+    }
+    
+    let html = '<div class="curso-objetivos">';
+    
+    if (objetivos.geral) {
+        html += `
+            <h4>Objetivo Geral</h4>
+            <p>${objetivos.geral}</p>
+        `;
+    }
+    
+    if (objetivos.especificos && objetivos.especificos.length > 0) {
+        html += `
+            <h4>Objetivos Específicos</h4>
+            <ul class="objetivos-lista">
+                ${objetivos.especificos.map(obj => `<li>${obj}</li>`).join('')}
+            </ul>
+        `;
+    }
+    
+    if (objetivos.habilidades && objetivos.habilidades.length > 0) {
+        html += `
+            <h4>Habilidades a Aprender</h4>
+            <ul class="habilidades-lista">
+                ${objetivos.habilidades.map(hab => `<li>${hab}</li>`).join('')}
+            </ul>
+        `;
+    }
+    
+    html += '</div>';
+    return html;
 }
 
 function renderizarDetalhesCurso() {
@@ -80,17 +164,31 @@ function renderizarDetalhesCurso() {
     const areaTag = curso.area ? `<span class="curso-area-tag">${curso.area}</span>` : '';
     
     cursoDetalhes.innerHTML = `
-        <h2>${curso.titulo}</h2>
-        ${areaTag}
-        <div class="curso-info">
-            <p><strong>Duração:</strong> ${curso.duracao}</p>
-            <p><strong>Carga Horária:</strong> ${curso.carga_horaria} horas</p>
-            <p><strong>Modalidade:</strong> ${curso.modalidade}</p>
+        <div class="curso-header-topo">
+            <div class="curso-header-info">
+                <h2>${curso.titulo}</h2>
+                ${areaTag}
+                <div class="curso-info">
+                    <p><strong>Duração:</strong> ${curso.duracao}</p>
+                    <p><strong>Carga Horária:</strong> ${curso.carga_horaria} horas</p>
+                    <p><strong>Modalidade:</strong> ${curso.modalidade}</p>
+                </div>
+            </div>
+            <div class="curso-botoes-topo">
+                <a href="${curso.link_matricula}" target="_blank" rel="noopener noreferrer" class="btn-matricula">Matricular-se</a>
+                <a href="index.html" class="btn-voltar">Voltar</a>
+            </div>
         </div>
         <div class="curso-descricao">
             <h3>Descrição</h3>
             <p>${curso.descricao_curta}</p>
         </div>
+        ${curso.objetivos ? `
+        <div class="curso-descricao">
+            <h3>Objetivos</h3>
+            ${renderizarObjetivos(curso.objetivos)}
+        </div>
+        ` : ''}
         <div class="curso-descricao">
             <h3>Ementa</h3>
             ${renderizarEmenta(curso.ementa)}
@@ -98,10 +196,6 @@ function renderizarDetalhesCurso() {
         <div class="curso-descricao">
             <h3>Público-Alvo</h3>
             <p>${curso.publico_alvo}</p>
-        </div>
-        <div class="curso-botoes">
-            <a href="${curso.link_matricula}" target="_blank" rel="noopener noreferrer" class="btn-matricula">Matricular-se</a>
-            <a href="index.html" class="btn-voltar">Voltar para a página principal</a>
         </div>
     `;
 }

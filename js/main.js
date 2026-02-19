@@ -4,6 +4,95 @@
  */
 
 /**
+ * Gera o nome do arquivo de imagem baseado no título do curso
+ * @param {string} titulo - Título do curso
+ * @returns {string} Nome do arquivo de imagem (sem extensão)
+ */
+function gerarNomeImagem(titulo) {
+    // Mapeamento direto dos títulos para os nomes dos arquivos
+    const mapeamento = {
+        'Empreendedorismo': 'Empreendedorismo',
+        'Gestão de Recursos Humanos': 'Gestão-de-Recursos-Humanos',
+        'Analista de Vendas': 'Analista-de-Vendas',
+        'Arbitragem e Mediação de Conflitos': 'Arbitragem-e-Mediação-de-Conflitos',
+        'Gestão de Redes Sociais': 'Gestão-de-Redes-Sociais',
+        'Fluxo de Caixa': 'Fluxo-de-Caixa',
+        'Administração de Servidores': 'Administração-de-Servidores',
+        'Administração Financeira e Orçamentária': 'Administração-Financeira-e-Orçamentária',
+        'Administração Mercadológica': 'Administração-Mercadológica',
+        'Distúrbios de Aprendizagem': 'Distúrbios-de-Aprendizagem',
+        'Neuroeducação e Tecnologias Educacionais': 'Neuroeducação-e-Tecnologias-Educacionais',
+        'Práticas do Secretariado Escolar': 'Práticas-do-Secretariado-Escolar',
+        'Perícia, Avaliação e Arbitragem': 'Perícia,-Avaliação-e-Arbitragem'
+    };
+    
+    return mapeamento[titulo] || null;
+}
+
+/**
+ * Cria o elemento de imagem para o card do curso
+ * @param {Object} curso - Objeto contendo os dados do curso
+ * @returns {HTMLElement|null} Elemento img ou null se não houver imagem
+ */
+function criarImagemCard(curso) {
+    const nomeImagem = gerarNomeImagem(curso.titulo);
+    
+    if (!nomeImagem) {
+        // Retornar um div vazio para manter o espaço
+        const placeholder = document.createElement('div');
+        placeholder.className = 'curso-imagem-placeholder';
+        return placeholder;
+    }
+    
+    const imagemContainer = document.createElement('div');
+    imagemContainer.className = 'curso-imagem-container';
+    
+    const imagemDesktop = document.createElement('img');
+    imagemDesktop.src = `img/${nomeImagem}-DESKTOP.png`;
+    imagemDesktop.alt = curso.titulo;
+    imagemDesktop.className = 'curso-imagem curso-imagem-desktop';
+    imagemDesktop.loading = 'lazy';
+    
+    const imagemMobile = document.createElement('img');
+    imagemMobile.src = `img/${nomeImagem}-MOBILE.png`;
+    imagemMobile.alt = curso.titulo;
+    imagemMobile.className = 'curso-imagem curso-imagem-mobile';
+    imagemMobile.loading = 'lazy';
+    
+    // Tratamento de erro caso a imagem não exista
+    let imagensCarregadas = 0;
+    const totalImagens = 2;
+    
+    const verificarCarregamento = () => {
+        imagensCarregadas++;
+        if (imagensCarregadas === totalImagens && (imagemDesktop.style.display === 'none' && imagemMobile.style.display === 'none')) {
+            // Se ambas as imagens falharam, substituir por placeholder
+            imagemContainer.innerHTML = '';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'curso-imagem-placeholder';
+            imagemContainer.appendChild(placeholder);
+        }
+    };
+    
+    imagemDesktop.onerror = function() {
+        this.style.display = 'none';
+        verificarCarregamento();
+    };
+    imagemMobile.onerror = function() {
+        this.style.display = 'none';
+        verificarCarregamento();
+    };
+    
+    imagemDesktop.onload = verificarCarregamento;
+    imagemMobile.onload = verificarCarregamento;
+    
+    imagemContainer.appendChild(imagemDesktop);
+    imagemContainer.appendChild(imagemMobile);
+    
+    return imagemContainer;
+}
+
+/**
  * Cria um elemento card para um curso específico
  * @param {Object} curso - Objeto contendo os dados do curso
  * @returns {HTMLElement} Elemento div com a estrutura do card
@@ -12,6 +101,12 @@ function criarCardCurso(curso) {
     // Criar o elemento card
     const card = document.createElement('div');
     card.className = 'curso-card';
+    
+    // Criar a imagem do curso
+    const imagemCard = criarImagemCard(curso);
+    if (imagemCard) {
+        card.appendChild(imagemCard);
+    }
     
     // Criar o conteúdo do card
     const cardContent = document.createElement('div');

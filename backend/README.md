@@ -24,7 +24,7 @@ npm install
 
 2. Edite o `.env` e configure:
    - `MP_ACCESS_TOKEN`: Token de acesso do Mercado Pago (obrigatório)
-   - `BASE_URL`: URL do frontend (ex: `http://localhost:5500` ou domínio em produção)
+   - `BASE_URL`: URL do frontend (ex: `https://extensao.femaf.com.br` em produção)
    - `PORT`: Porta do servidor (opcional, padrão: 3000)
 
 3. Obtenha o Access Token em: https://www.mercadopago.com.br/developers/panel/app

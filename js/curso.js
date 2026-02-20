@@ -1,4 +1,10 @@
 /**
+ * URL base da API de checkout (backend)
+ * Em produção: mesmo domínio ou subdomínio da API
+ */
+const API_BASE_URL = 'https://extensao.femaf.com.br';
+
+/**
  * Gera o nome do arquivo de imagem baseado no título do curso
  * @param {string} titulo - Título do curso
  * @returns {string} Nome do arquivo de imagem (sem extensão)
@@ -176,6 +182,7 @@ function renderizarDetalhesCurso() {
             </div>
             <div class="curso-botoes-topo">
                 <a href="${curso.link_matricula}" target="_blank" rel="noopener noreferrer" class="btn-matricula">Matricular-se</a>
+                <button type="button" class="btn-comprar-teste" data-course-id="${curso.id}" title="Botão de teste - ocultar em produção">Comprar (Teste)</button>
                 <a href="index.html" class="btn-voltar">Voltar</a>
             </div>
         </div>
@@ -211,4 +218,48 @@ function inicializar() {
     setTimeout(tentarRenderizar, 100);
 }
 
-document.addEventListener('DOMContentLoaded', inicializar);
+async function iniciarCheckout(e) {
+    const btn = e.target.closest('.btn-comprar-teste');
+    if (!btn) return;
+    const courseId = btn.dataset.courseId;
+    if (!courseId) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Aguarde...';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/checkout/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.message || 'Erro ao criar checkout');
+        }
+        if (data.init_point) {
+            window.location.href = data.init_point;
+        } else {
+            throw new Error('Resposta inválida do servidor');
+        }
+    } catch (err) {
+        alert('Erro: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Comprar (Teste)';
+    }
+}
+
+function delegarEventos() {
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-comprar-teste') && !e.target.closest('.btn-comprar-teste').disabled) {
+            e.preventDefault();
+            iniciarCheckout(e);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    inicializar();
+    delegarEventos();
+});

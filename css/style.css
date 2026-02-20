@@ -762,6 +762,31 @@ main {
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
+/* Botão Comprar (Teste) - Mercado Pago. Para ocultar em produção: .btn-comprar-teste { display: none !important; } */
+.curso-detalhes .btn-comprar-teste {
+    display: inline-block;
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 140px;
+}
+.curso-detalhes .btn-comprar-teste:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+.curso-detalhes .btn-comprar-teste:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .curso-detalhes .btn-voltar {
     display: inline-block;
     background-color: #64748b;
@@ -1313,6 +1338,7 @@ footer {
     }
     
     .curso-detalhes .btn-matricula,
+    .curso-detalhes .btn-comprar-teste,
     .curso-detalhes .btn-voltar {
         width: 100%;
         text-align: center;

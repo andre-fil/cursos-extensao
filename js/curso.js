@@ -1,6 +1,8 @@
 /**
  * URL base da API de checkout (backend)
- * Em produção: mesmo domínio ou subdomínio da API
+ * IMPORTANTE: O backend Node.js precisa estar hospedado em outro lugar.
+ * Ex: Railway, Render, etc. → https://seu-backend.up.railway.app
+ * Não use extensao.femaf.com.br se o site for estático (GitHub Pages).
  */
 const API_BASE_URL = 'https://extensao.femaf.com.br';
 
@@ -233,7 +235,13 @@ async function iniciarCheckout(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ courseId }),
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            throw new Error('Backend não encontrado. Confira se a API está hospedada em ' + API_BASE_URL);
+        }
 
         if (!res.ok) {
             throw new Error(data.message || 'Erro ao criar checkout');

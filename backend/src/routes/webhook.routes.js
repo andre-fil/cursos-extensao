@@ -27,27 +27,55 @@ router.post("/mercadopago", async (req, res) => {
   const dataId = req.query["data.id"] || req.body?.data?.id;
   const type = req.query.type || req.body?.type;
 
+  // Diagnóstico: confirma que o webhook foi chamado e com quais parâmetros
+  console.log("[webhook] Chamada recebida. query[data.id]=" + req.query["data.id"] + " query[type]=" + req.query.type + " body.data.id=" + (req.body?.data?.id) + " body.type=" + (req.body?.type));
+
   if (!dataId || type !== "payment") {
-    console.log("[webhook] Ignorado: data.id ou type ausente");
+    console.log("[webhook] Ignorado: data.id ou type ausente (dataId=" + dataId + " type=" + type + ")");
     return;
   }
 
   setImmediate(async () => {
     try {
       const payment = await getPaymentById(dataId);
+
+      // === LOGS DE DIAGNÓSTICO (remover após confirmar fluxo) ===
+      console.log("[webhook] STATUS:", payment.status);
+      console.log("[webhook] DETAIL:", payment.status_detail);
+      console.log("[webhook] external_reference:", payment.external_reference);
+      console.log("[webhook] external_reference_id:", payment.external_reference_id);
+      console.log("[webhook] PAYMENT (resumo):", {
+        id: payment.id,
+        status: payment.status,
+        status_detail: payment.status_detail,
+        external_reference: payment.external_reference,
+        external_reference_id: payment.external_reference_id,
+      });
+
       const status = payment.status;
+      const statusDetail = payment.status_detail || "";
       const externalRef = payment.external_reference || payment.external_reference_id;
 
-      console.log("[webhook] Pagamento:", { payment_id: dataId, status, external_reference: externalRef });
+      if (!externalRef) {
+        console.log("[webhook] ABORT: external_reference e external_reference_id ausentes. Backend não sabe quem matricular nem em qual curso.");
+        return;
+      }
 
       if (status !== "approved") {
-        console.log("[webhook] Status não aprovado, nenhuma ação no Moodle");
+        console.log("[webhook] Status não aprovado, nenhuma ação no Moodle. status=" + status + " status_detail=" + statusDetail);
+        return;
+      }
+
+      // Pagamento aprovado: opcionalmente exige status_detail "accredited" (ajuste se necessário)
+      const detailOk = !statusDetail || /accredited|approved/i.test(statusDetail);
+      if (!detailOk) {
+        console.log("[webhook] Status aprovado mas status_detail não considerado válido:", statusDetail);
         return;
       }
 
       const parsed = parseExternalReference(externalRef);
       if (!parsed) {
-        console.log("[webhook] external_reference inválido:", externalRef);
+        console.log("[webhook] external_reference inválido (formato esperado: COURSE_ID|existing|VAL ou COURSE_ID|new|EMAIL):", externalRef);
         return;
       }
 

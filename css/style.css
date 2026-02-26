@@ -1613,6 +1613,19 @@ footer {
     margin-top: 0.75rem;
     margin-bottom: 0;
 }
+.status-page-email {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+    font-weight: 600;
+    color: #0f766e;
+}
+.status-page-matricula-status {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+}
+.status-page-matricula-ok { color: #15803d; }
+.status-page-matricula-pending { color: #b45309; }
+.status-page-matricula-warn { color: #b91c1c; }
 
 .status-page .btn-matricula {
     display: inline-block;

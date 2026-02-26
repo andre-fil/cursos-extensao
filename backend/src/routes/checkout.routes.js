@@ -1,7 +1,17 @@
 import { Router } from "express";
-import { getCourseById, createPreference } from "../services/mercadoPago.service.js";
+import { getCourseById, createPreference, getPaymentById } from "../services/mercadoPago.service.js";
+import { findUserByEmail, findUserByRegistration, isUserEnrolledInCourse } from "../services/moodle.service.js";
+import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
+
+/** Parseia external_reference: "COURSE_ID|existing|REGISTRATION" ou "COURSE_ID|new|EMAIL" */
+function parseExternalReference(ref) {
+  if (!ref || typeof ref !== "string") return null;
+  const parts = ref.split("|");
+  if (parts.length !== 3) return null;
+  return { courseId: parts[0], type: parts[1], value: parts[2] };
+}
 
 /**
  * POST /checkout/create
@@ -72,6 +82,71 @@ router.post("/create", async (req, res) => {
       error: "INTERNAL_ERROR",
       message: err.message || "Erro ao criar preferência",
     });
+  }
+});
+
+/**
+ * GET /checkout/verify-enrollment?payment_id=123
+ * Valida se o pagamento foi aprovado e se o aluno foi criado/matriculado no Moodle.
+ * Retorna { ok, created, email?, pending? } para exibir na página de sucesso.
+ */
+router.get("/verify-enrollment", async (req, res) => {
+  try {
+    const paymentId = req.query.payment_id;
+    if (!paymentId) {
+      return res.status(400).json({ ok: false, error: "payment_id é obrigatório" });
+    }
+
+    const payment = await getPaymentById(paymentId);
+    if (payment.status !== "approved") {
+      return res.json({ ok: false, created: false, status: payment.status || "unknown" });
+    }
+
+    const externalRef = payment.external_reference || payment.external_reference_id;
+    const parsed = parseExternalReference(externalRef);
+    if (!parsed) {
+      return res.json({ ok: false, created: false, error: "external_reference inválido" });
+    }
+
+    const { courseId, type: userType, value } = parsed;
+    const moodleCourseId = getMoodleCourseId(courseId);
+    if (!moodleCourseId) {
+      return res.json({ ok: false, created: false, error: "Curso não mapeado" });
+    }
+
+    if (userType === "new") {
+      const email = value || payment.payer?.email;
+      if (!email) {
+        return res.json({ ok: false, created: false, email: null });
+      }
+      const user = await findUserByEmail(email);
+      if (!user) {
+        return res.json({ ok: true, created: false, pending: true, email });
+      }
+      const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
+      if (!enrolled) {
+        return res.json({ ok: true, created: false, pending: true, email });
+      }
+      return res.json({ ok: true, created: true, email });
+    }
+
+    if (userType === "existing") {
+      const registration = value;
+      const user = await findUserByRegistration(registration);
+      if (!user) {
+        return res.json({ ok: true, created: false, pending: true });
+      }
+      const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
+      if (!enrolled) {
+        return res.json({ ok: true, created: false, pending: true });
+      }
+      return res.json({ ok: true, created: true });
+    }
+
+    return res.json({ ok: false, created: false });
+  } catch (err) {
+    console.error("[checkout/verify-enrollment]", err.message);
+    res.status(500).json({ ok: false, created: false, error: err.message });
   }
 });
 

@@ -40,6 +40,45 @@ export async function findUserByRegistration(registration) {
 }
 
 /**
+ * Busca usuário no Moodle pelo e-mail.
+ * @param {string} email - E-mail do usuário
+ * @returns {Promise<{id: number}|null>} - Usuário ou null
+ */
+export async function findUserByEmail(email) {
+  if (!email || typeof email !== "string") return null;
+  const trimmed = String(email).trim();
+  if (!trimmed) return null;
+
+  const url = getMoodleUrl("core_user_get_users", {
+    "criteria[0][key]": "email",
+    "criteria[0][value]": trimmed,
+  });
+  const res = await fetch(url, { method: "GET" });
+  const data = await res.json();
+  if (data.exception) throw new Error(data.message || data.exception);
+  if (!Array.isArray(data) || data.length === 0) return null;
+  return { id: data[0].id };
+}
+
+/**
+ * Verifica se o usuário está matriculado no curso (manual enrolment).
+ * @param {number} userId - ID do usuário no Moodle
+ * @param {number} courseId - ID do curso no Moodle
+ * @returns {Promise<boolean>}
+ */
+export async function isUserEnrolledInCourse(userId, courseId) {
+  if (!userId || !courseId) return false;
+  const url = getMoodleUrl("core_enrol_get_enrolled_users", {
+    courseid: String(courseId),
+  });
+  const res = await fetch(url, { method: "GET" });
+  const data = await res.json();
+  if (data.exception) throw new Error(data.message || data.exception);
+  if (!Array.isArray(data)) return false;
+  return data.some((u) => Number(u.id) === Number(userId));
+}
+
+/**
  * Cria usuário no Moodle.
  * Username = e-mail. Senha = CPF (apenas números).
  * @param {{ firstname: string, lastname: string, email: string, cpf?: string }} user

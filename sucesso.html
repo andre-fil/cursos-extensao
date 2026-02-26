@@ -23,11 +23,13 @@
             <h2>Pagamento aprovado</h2>
             <p>Seu pagamento foi confirmado e sua matrícula no curso foi realizada no ambiente EAD.</p>
             <div class="status-page-acesso" id="boxAcesso">
-                <p><strong>Como acessar o EAD:</strong></p>
+                <p id="acessoTitulo"><strong>Como acessar o EAD:</strong></p>
+                <p id="acessoEmail" class="status-page-email" style="display: none;"></p>
                 <ul>
-                    <li><strong>Usuário:</strong> o <strong>e-mail</strong> que você informou no pagamento.</li>
+                    <li><strong>Usuário:</strong> <span id="acessoUser">o e-mail que você informou no pagamento</span>.</li>
                     <li><strong>Senha:</strong> seu <strong>CPF</strong> (apenas os 11 números, sem pontos ou traços).</li>
                 </ul>
+                <p id="acessoStatus" class="status-page-matricula-status" style="display: none;"></p>
             </div>
             <p class="status-page-meta" id="status-meta"></p>
             <a href="#" id="btnAcessarCurso" class="btn-matricula status-page-btn-acessar" style="display: none;">Acessar o curso no EAD</a>
@@ -40,20 +42,38 @@
     <script src="js/chatbot.js"></script>
     <script>
         (function () {
-            // URL base do Moodle (ajuste conforme seu ambiente EAD)
+            var API_BASE_URL = "https://qmqump3csh.us-east-1.awsapprunner.com";
             var MOODLE_BASE_URL = "https://ead.femaf.com.br";
             var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
 
             var params = new URLSearchParams(window.location.search);
             var ref = params.get('external_reference');
-            var id = params.get('payment_id');
+            var paymentId = params.get('payment_id');
             var meta = document.getElementById('status-meta');
             var btnAcessar = document.getElementById('btnAcessarCurso');
+            var acessoUser = document.getElementById('acessoUser');
+            var acessoEmail = document.getElementById('acessoEmail');
+            var acessoStatus = document.getElementById('acessoStatus');
 
-            if (ref || id) {
+            // E-mail extraído da ref só para tipo new (COURSE_ID|new|EMAIL)
+            var refParts = ref && ref.indexOf('|') >= 0 ? ref.split('|') : [];
+            var isNewUser = refParts[1] === 'new';
+            var emailFromRef = isNewUser ? refParts[2] : null;
+            if (emailFromRef && acessoUser) {
+                acessoUser.textContent = emailFromRef;
+            }
+            if (emailFromRef && acessoEmail) {
+                acessoEmail.textContent = 'E-mail de acesso: ' + emailFromRef;
+                acessoEmail.style.display = 'block';
+            }
+            if (!isNewUser && acessoUser) {
+                acessoUser.textContent = 'sua matrícula EAD (informada no pagamento)';
+            }
+
+            if (ref || paymentId) {
                 var parts = [];
                 if (ref) parts.push('Curso: ' + ref.split('|')[0]);
-                if (id) parts.push('Pagamento: ' + id);
+                if (paymentId) parts.push('Pagamento: ' + paymentId);
                 if (meta) meta.textContent = parts.join(' · ');
             }
 
@@ -66,6 +86,43 @@
                     btnAcessar.target = '_blank';
                     btnAcessar.rel = 'noopener noreferrer';
                 }
+            }
+
+            // Validar no backend se o aluno foi criado e matriculado
+            if (API_BASE_URL && paymentId && acessoStatus) {
+                acessoStatus.style.display = 'block';
+                acessoStatus.textContent = 'Confirmando matrícula no EAD...';
+                acessoStatus.className = 'status-page-matricula-status status-page-matricula-pending';
+                fetch(API_BASE_URL + '/checkout/verify-enrollment?payment_id=' + encodeURIComponent(paymentId))
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.created) {
+                            acessoStatus.textContent = 'Matrícula confirmada no EAD.';
+                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-ok';
+                            if (data.email && acessoEmail) {
+                                acessoEmail.textContent = 'E-mail de acesso: ' + data.email;
+                                acessoEmail.style.display = 'block';
+                                if (acessoUser) acessoUser.textContent = data.email;
+                            }
+                        } else if (data.pending) {
+                            acessoStatus.textContent = 'Sua matrícula está sendo processada. Em instantes você poderá acessar o EAD com o e-mail acima.';
+                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-pending';
+                            if (data.email && acessoUser) acessoUser.textContent = data.email;
+                            if (data.email && acessoEmail) {
+                                acessoEmail.textContent = 'E-mail de acesso: ' + data.email;
+                                acessoEmail.style.display = 'block';
+                            }
+                        } else {
+                            acessoStatus.textContent = 'Não foi possível confirmar a matrícula. Entre em contato com o suporte se o problema persistir.';
+                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-warn';
+                        }
+                    })
+                    .catch(function () {
+                        acessoStatus.textContent = 'Não foi possível validar a matrícula. Use o e-mail informado no pagamento para acessar o EAD.';
+                        acessoStatus.className = 'status-page-matricula-status status-page-matricula-warn';
+                    });
+            } else if (emailFromRef && acessoStatus) {
+                acessoStatus.style.display = 'none';
             }
         })();
     </script>

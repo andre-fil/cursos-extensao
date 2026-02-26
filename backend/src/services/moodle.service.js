@@ -41,23 +41,25 @@ export async function findUserByRegistration(registration) {
 
 /**
  * Cria usuário no Moodle.
+ * Username = e-mail. Senha = CPF (apenas números).
  * @param {{ firstname: string, lastname: string, email: string, cpf?: string }} user
  * @returns {Promise<{id: number}>} - { id: moodleUserId }
  */
 export async function createUser(user) {
-  const username = (user.email || "").replace(/[^a-zA-Z0-9._@-]/g, "_").toLowerCase() || "user";
-  const uniq = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const moodleUsername = `${username}_${uniq}`;
+  const email = String(user.email || "").trim();
+  if (!email) throw new Error("E-mail é obrigatório para criar usuário");
+  const cpf = String(user.cpf || "").replace(/\D/g, "").slice(0, 11);
+  if (!cpf || cpf.length < 11) throw new Error("CPF é obrigatório para criar usuário (senha no EAD)");
 
   const body = new URLSearchParams({
     wstoken: MOODLE_TOKEN,
     wsfunction: "core_user_create_users",
     moodlewsrestformat: "json",
-    "users[0][username]": moodleUsername,
+    "users[0][username]": email,
     "users[0][firstname]": String(user.firstname || "").trim(),
     "users[0][lastname]": String(user.lastname || "").trim(),
-    "users[0][email]": String(user.email || "").trim(),
-    "users[0][password]": Math.random().toString(36).slice(-12) + "Aa1!",
+    "users[0][email]": email,
+    "users[0][password]": cpf,
   });
   if (user.idnumber) body.append("users[0][idnumber]", String(user.idnumber).trim());
 

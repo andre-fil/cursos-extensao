@@ -1591,6 +1591,28 @@ footer {
     color: #94a3b8;
     margin-bottom: 1.5rem;
 }
+.status-page-acesso {
+    text-align: left;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+}
+.status-page-acesso ul { margin: 0.5rem 0 0 1.25rem; }
+.status-page-acesso li { margin-bottom: 0.25rem; }
+.status-page-acesso code {
+    background: #dcfce7;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.status-page-aviso {
+    font-size: 0.875rem;
+    color: #15803d;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+}
 
 .status-page .btn-matricula {
     display: inline-block;

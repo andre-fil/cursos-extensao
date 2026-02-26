@@ -1608,6 +1608,15 @@ footer {
     box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
 }
 
+.status-page .btn-voltar-inline {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #64748b;
+    font-size: 0.9375rem;
+}
+.status-page .btn-voltar-inline:hover { color: #1e40af; }
+.status-page .status-page-btn-acessar { margin-right: 0.5rem; }
+
 .status-page--sucesso h2 { color: #059669; }
 .status-page--erro h2 { color: #dc2626; }
 .status-page--pendente h2 { color: #d97706; }

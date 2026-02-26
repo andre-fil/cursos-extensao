@@ -21,9 +21,10 @@
     <main class="status-page-wrapper">
         <div class="status-page status-page--sucesso">
             <h2>Pagamento aprovado</h2>
-            <p>Seu pagamento foi confirmado. Em breve você receberá as instruções de acesso ao curso.</p>
+            <p>Seu pagamento foi confirmado e sua matrícula no curso foi realizada no ambiente EAD.</p>
             <p class="status-page-meta" id="status-meta"></p>
-            <a href="index.html" class="btn-matricula">Voltar aos cursos</a>
+            <a href="#" id="btnAcessarCurso" class="btn-matricula status-page-btn-acessar" style="display: none;">Acessar o curso no EAD</a>
+            <a href="index.html" class="btn-voltar-inline">Voltar aos cursos</a>
         </div>
     </main>
     <footer>
@@ -32,15 +33,32 @@
     <script src="js/chatbot.js"></script>
     <script>
         (function () {
+            // URL base do Moodle (ajuste conforme seu ambiente EAD)
+            var MOODLE_BASE_URL = "https://ead.femaf.com.br";
+            var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
+
             var params = new URLSearchParams(window.location.search);
             var ref = params.get('external_reference');
             var id = params.get('payment_id');
             var meta = document.getElementById('status-meta');
+            var btnAcessar = document.getElementById('btnAcessarCurso');
+
             if (ref || id) {
                 var parts = [];
-                if (ref) parts.push('Curso: ' + ref);
+                if (ref) parts.push('Curso: ' + ref.split('|')[0]);
                 if (id) parts.push('Pagamento: ' + id);
-                meta.textContent = parts.join(' · ');
+                if (meta) meta.textContent = parts.join(' · ');
+            }
+
+            if (MOODLE_BASE_URL && ref) {
+                var courseId = ref.indexOf('|') >= 0 ? ref.split('|')[0] : ref;
+                var moodleId = COURSE_MOODLE_IDS[courseId];
+                if (moodleId && btnAcessar) {
+                    btnAcessar.href = MOODLE_BASE_URL.replace(/\/$/, '') + '/course/view.php?id=' + moodleId;
+                    btnAcessar.style.display = 'inline-block';
+                    btnAcessar.target = '_blank';
+                    btnAcessar.rel = 'noopener noreferrer';
+                }
             }
         })();
     </script>

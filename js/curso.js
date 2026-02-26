@@ -218,58 +218,139 @@ function inicializar() {
     setTimeout(tentarRenderizar, 100);
 }
 
-/**
- * Envia POST /checkout/create ao backend, recebe init_point e redireciona para o Mercado Pago.
- * Erros: rede, HTTP não 200, resposta sem init_point → mensagem em #mensagemErro.
- */
-async function iniciarCheckout(e) {
-    var btn = e.target.closest("#btnPagar");
-    if (!btn) return;
-    var courseId = btn.getAttribute("data-course-id");
-    if (!courseId) return;
+// --- Modal checkout: perfil (existing/new) + envio ao backend ---
+var modalCheckoutCourseId = null;
 
-    var mensagemErro = document.getElementById("mensagemErro");
-    if (mensagemErro) mensagemErro.textContent = "";
+function abrirModalCheckout(courseId) {
+    modalCheckoutCourseId = courseId;
+    var modal = document.getElementById("modalCheckout");
+    var formExisting = document.getElementById("formExisting");
+    var formNew = document.getElementById("formNew");
+    var choices = modal && modal.querySelector(".modal-checkout-choices");
+    var btnVoltar = document.getElementById("btnModalVoltar");
+    var msgErro = document.getElementById("modalMensagemErro");
+    if (msgErro) { msgErro.style.display = "none"; msgErro.textContent = ""; }
+    if (formExisting) formExisting.style.display = "none";
+    if (formNew) formNew.style.display = "none";
+    if (choices) choices.style.display = "block";
+    if (btnVoltar) btnVoltar.style.display = "none";
+    if (modal) { modal.classList.add("modal-checkout--open"); modal.setAttribute("aria-hidden", "false"); }
+}
 
-    btn.disabled = true;
-    btn.textContent = "Aguarde...";
+function fecharModalCheckout() {
+    var modal = document.getElementById("modalCheckout");
+    if (modal) { modal.classList.remove("modal-checkout--open"); modal.setAttribute("aria-hidden", "true"); }
+    modalCheckoutCourseId = null;
+}
+
+function mostrarErroModal(msg) {
+    var el = document.getElementById("modalMensagemErro");
+    if (el) { el.textContent = msg || ""; el.style.display = msg ? "block" : "none"; }
+}
+
+function cpfnumeros(val) {
+    return (val || "").replace(/\D/g, "");
+}
+
+async function enviarCheckout(payload) {
+    mostrarErroModal("");
+    var btnExisting = document.getElementById("btnContinuarExisting");
+    var btnNew = document.getElementById("btnContinuarNew");
+    var btns = [btnExisting, btnNew].filter(Boolean);
+    btns.forEach(function (b) { b.disabled = true; b.textContent = "Aguarde..."; });
 
     try {
         var res = await fetch(API_BASE_URL + "/checkout/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ courseId: courseId }),
+            body: JSON.stringify(payload),
         });
-
         var text = await res.text();
         var data;
-        try {
-            data = JSON.parse(text);
-        } catch {
-            throw new Error("Resposta inválida do servidor.");
-        }
-
-        if (!res.ok) {
-            throw new Error(data.message || "Erro ao criar checkout.");
-        }
-        if (data.init_point) {
-            window.location.href = data.init_point;
-            return;
-        }
+        try { data = JSON.parse(text); } catch { throw new Error("Resposta inválida do servidor."); }
+        if (!res.ok) throw new Error(data.message || "Erro ao criar checkout.");
+        if (data.init_point) { window.location.href = data.init_point; return; }
         throw new Error("Resposta inválida do servidor.");
     } catch (err) {
-        if (mensagemErro) mensagemErro.textContent = err.message || "Erro de rede. Tente novamente.";
-        btn.disabled = false;
-        btn.textContent = "Pagar agora";
+        mostrarErroModal(err.message || "Erro de rede. Tente novamente.");
+        btns.forEach(function (b) { b.disabled = false; b.textContent = "Continuar para pagamento"; });
     }
+}
+
+function continuarExisting() {
+    var matricula = (document.getElementById("inputMatricula") && document.getElementById("inputMatricula").value) || "";
+    matricula = matricula.trim();
+    if (!matricula) { mostrarErroModal("Informe sua matrícula EAD."); return; }
+    if (!modalCheckoutCourseId) return;
+    enviarCheckout({ courseId: modalCheckoutCourseId, type: "existing", registration: matricula });
+}
+
+function continuarNew() {
+    var nome = (document.getElementById("inputNome") && document.getElementById("inputNome").value) || "";
+    var sobrenome = (document.getElementById("inputSobrenome") && document.getElementById("inputSobrenome").value) || "";
+    var email = (document.getElementById("inputEmail") && document.getElementById("inputEmail").value) || "";
+    var cpf = cpfnumeros((document.getElementById("inputCpf") && document.getElementById("inputCpf").value) || "");
+    nome = nome.trim(); sobrenome = sobrenome.trim(); email = email.trim();
+    if (!nome) { mostrarErroModal("Informe seu nome."); return; }
+    if (!sobrenome) { mostrarErroModal("Informe seu sobrenome."); return; }
+    if (!email) { mostrarErroModal("Informe seu e-mail."); return; }
+    if (cpf.length < 11) { mostrarErroModal("Informe um CPF válido (11 dígitos)."); return; }
+    if (!modalCheckoutCourseId) return;
+    enviarCheckout({
+        courseId: modalCheckoutCourseId,
+        type: "new",
+        user: { firstname: nome, lastname: sobrenome, email: email, cpf: cpf },
+    });
 }
 
 function delegarEventos() {
     document.addEventListener("click", function (e) {
         if (e.target.closest("#btnPagar") && !e.target.closest("#btnPagar").disabled) {
             e.preventDefault();
-            iniciarCheckout(e);
+            var courseId = (e.target.closest("#btnPagar") && e.target.closest("#btnPagar").getAttribute("data-course-id")) || null;
+            if (courseId) abrirModalCheckout(courseId);
         }
+        if (e.target.closest(".modal-checkout-backdrop") || e.target.closest("#btnModalFechar")) {
+            e.preventDefault();
+            fecharModalCheckout();
+        }
+        if (e.target.closest("#btnModalVoltar")) {
+            e.preventDefault();
+            var modal = document.getElementById("modalCheckout");
+            var formExisting = document.getElementById("formExisting");
+            var formNew = document.getElementById("formNew");
+            var choices = modal && modal.querySelector(".modal-checkout-choices");
+            var btnVoltar = document.getElementById("btnModalVoltar");
+            if (formExisting) formExisting.style.display = "none";
+            if (formNew) formNew.style.display = "none";
+            if (choices) choices.style.display = "block";
+            if (btnVoltar) btnVoltar.style.display = "none";
+            mostrarErroModal("");
+        }
+        if (e.target.closest(".modal-checkout-btn[data-choice='existing']")) {
+            var formExisting = document.getElementById("formExisting");
+            var formNew = document.getElementById("formNew");
+            var choices = document.querySelector(".modal-checkout-choices");
+            var btnVoltar = document.getElementById("btnModalVoltar");
+            if (formNew) formNew.style.display = "none";
+            if (formExisting) formExisting.style.display = "block";
+            if (choices) choices.style.display = "none";
+            if (btnVoltar) btnVoltar.style.display = "block";
+            mostrarErroModal("");
+        }
+        if (e.target.closest(".modal-checkout-btn[data-choice='new']")) {
+            var formExisting = document.getElementById("formExisting");
+            var formNew = document.getElementById("formNew");
+            var choices = document.querySelector(".modal-checkout-choices");
+            var btnVoltar = document.getElementById("btnModalVoltar");
+            if (formExisting) formExisting.style.display = "none";
+            if (formNew) formNew.style.display = "block";
+            if (choices) choices.style.display = "none";
+            if (btnVoltar) btnVoltar.style.display = "block";
+            mostrarErroModal("");
+        }
+        if (e.target.closest("#btnContinuarExisting")) { e.preventDefault(); continuarExisting(); }
+        if (e.target.closest("#btnContinuarNew")) { e.preventDefault(); continuarNew(); }
     });
 }
 

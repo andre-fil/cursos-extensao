@@ -1611,3 +1611,108 @@ footer {
 .status-page--sucesso h2 { color: #059669; }
 .status-page--erro h2 { color: #dc2626; }
 .status-page--pendente h2 { color: #d97706; }
+
+/* Modal checkout: perfil EAD + continuar para pagamento */
+.modal-checkout {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.2s, opacity 0.2s;
+}
+.modal-checkout--open {
+    visibility: visible;
+    opacity: 1;
+}
+.modal-checkout-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+.modal-checkout-content {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+.modal-checkout-content h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: #0f172a;
+}
+.modal-checkout-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.modal-checkout-btn {
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.modal-checkout-btn:hover {
+    border-color: #1e40af;
+    background: #f8fafc;
+}
+.modal-checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.modal-checkout-form label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.875rem;
+}
+.modal-checkout-form input {
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+.modal-checkout-form .btn-matricula {
+    margin-top: 0.5rem;
+}
+.modal-checkout-erro {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+.modal-checkout-voltar {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+.modal-checkout-voltar:hover { color: #1e40af; }
+.modal-checkout-fechar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #64748b;
+}
+.modal-checkout-fechar:hover { color: #0f172a; background: #e2e8f0; }

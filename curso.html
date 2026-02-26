@@ -21,6 +21,35 @@
     <main>
         <div id="curso-detalhes" class="curso-detalhes"></div>
     </main>
+    <div id="modalCheckout" class="modal-checkout" aria-hidden="true">
+        <div class="modal-checkout-backdrop"></div>
+        <div class="modal-checkout-content">
+            <h3>Você já possui cadastro EAD na FEMAF?</h3>
+            <div class="modal-checkout-choices">
+                <button type="button" class="modal-checkout-btn" data-choice="existing">Já sou aluno EAD FEMAF</button>
+                <button type="button" class="modal-checkout-btn" data-choice="new">Ainda não sou aluno EAD FEMAF</button>
+            </div>
+            <div id="formExisting" class="modal-checkout-form" style="display: none;">
+                <label for="inputMatricula">Matrícula EAD</label>
+                <input type="text" id="inputMatricula" placeholder="Ex: 202312345" autocomplete="off">
+                <button type="button" id="btnContinuarExisting" class="btn-matricula">Continuar para pagamento</button>
+            </div>
+            <div id="formNew" class="modal-checkout-form" style="display: none;">
+                <label for="inputNome">Nome</label>
+                <input type="text" id="inputNome" placeholder="Nome" autocomplete="given-name">
+                <label for="inputSobrenome">Sobrenome</label>
+                <input type="text" id="inputSobrenome" placeholder="Sobrenome" autocomplete="family-name">
+                <label for="inputEmail">Email</label>
+                <input type="email" id="inputEmail" placeholder="email@exemplo.com" autocomplete="email">
+                <label for="inputCpf">CPF</label>
+                <input type="text" id="inputCpf" placeholder="Somente números" maxlength="14" autocomplete="off">
+                <button type="button" id="btnContinuarNew" class="btn-matricula">Continuar para pagamento</button>
+            </div>
+            <p id="modalMensagemErro" class="modal-checkout-erro" style="display: none;"></p>
+            <button type="button" class="modal-checkout-voltar" id="btnModalVoltar" style="display: none;">Voltar</button>
+            <button type="button" class="modal-checkout-fechar" id="btnModalFechar" aria-label="Fechar">×</button>
+        </div>
+    </div>
     <footer>
         <p>&copy; 2024 Cursos de Extensão. Todos os direitos reservados.</p>
     </footer>

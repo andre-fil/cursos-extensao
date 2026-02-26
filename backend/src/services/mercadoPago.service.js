@@ -1,4 +1,4 @@
-import { MercadoPagoConfig, Preference } from "mercadopago";
+import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 
 const COURSE_CATALOG = [
   { id: "EXT-001", title: "Empreendedorismo", price: 97.0 },
@@ -32,12 +32,38 @@ const client = new MercadoPagoConfig({
 
 const preferenceClient = new Preference(client);
 
-export async function createPreference(courseId) {
+/**
+ * Formato external_reference (fonte da verdade no webhook):
+ * - existing: COURSE_ID|existing|REGISTRATION
+ * - new:      COURSE_ID|new|EMAIL
+ */
+export async function createPreference(courseId, options = {}) {
   const course = getCourseById(courseId);
   if (!course) throw new Error("Curso não encontrado");
 
   const baseUrl = (process.env.BASE_URL || "").replace(/\/$/, "");
   if (!baseUrl) throw new Error("BASE_URL não configurado no servidor");
+
+  const { type, registration, user } = options;
+
+  let externalReference;
+  let payer = undefined;
+
+  if (type === "existing" && registration) {
+    externalReference = `${course.id}|existing|${String(registration).trim()}`;
+  } else if (type === "new" && user && user.email) {
+    externalReference = `${course.id}|new|${String(user.email).trim()}`;
+    payer = {
+      email: String(user.email).trim(),
+      first_name: String(user.firstname || "").trim() || "Nome",
+      last_name: String(user.lastname || "").trim() || "Sobrenome",
+      identification: user.cpf
+        ? { type: "CPF", number: String(user.cpf).replace(/\D/g, "").slice(0, 11) }
+        : undefined,
+    };
+  } else {
+    throw new Error("Tipo de perfil inválido: use type 'existing' com registration ou type 'new' com user");
+  }
 
   const body = {
     items: [
@@ -55,10 +81,19 @@ export async function createPreference(courseId) {
       pending: `${baseUrl}/pendente`,
     },
     auto_return: "approved",
-    external_reference: course.id,
+    external_reference: externalReference,
+    ...(payer && { payer }),
   };
 
   const preference = await preferenceClient.create({ body });
   if (!preference.init_point) throw new Error("Resposta MP sem init_point");
   return preference.init_point;
+}
+
+const paymentClient = new Payment(client);
+
+/** Busca pagamento por ID (usado no webhook). */
+export async function getPaymentById(paymentId) {
+  const payment = await paymentClient.get({ id: paymentId });
+  return payment;
 }

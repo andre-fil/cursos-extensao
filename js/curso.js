@@ -211,6 +211,17 @@ function inicializar() {
     function tentarRenderizar() {
         if (window.cursos && window.cursos.length > 0) {
             renderizarDetalhesCurso();
+            // Garante que o botão "Pagar agora" funcione após o conteúdo ser inserido
+            var btnPagar = document.getElementById("btnPagar");
+            if (btnPagar && !btnPagar._checkoutBound) {
+                btnPagar._checkoutBound = true;
+                btnPagar.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var courseId = this.getAttribute("data-course-id");
+                    if (courseId) abrirModalCheckout(courseId);
+                });
+            }
         } else {
             setTimeout(tentarRenderizar, 50);
         }

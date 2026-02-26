@@ -1,10 +1,7 @@
 /**
- * URL base da API de checkout (backend)
- * IMPORTANTE: O backend Node.js precisa estar hospedado em outro lugar.
- * Ex: Railway, Render, etc. → https://seu-backend.up.railway.app
- * Não use extensao.femaf.com.br se o site for estático (GitHub Pages).
+ * URL do backend (AWS App Runner) - cria preferência Mercado Pago
  */
-const API_BASE_URL = 'https://extensao.femaf.com.br';
+const API_BASE_URL = "https://qmqump3csh.us-east-1.awsapprunner.com";
 
 /**
  * Gera o nome do arquivo de imagem baseado no título do curso
@@ -184,8 +181,9 @@ function renderizarDetalhesCurso() {
             </div>
             <div class="curso-botoes-topo">
                 <a href="${curso.link_matricula}" target="_blank" rel="noopener noreferrer" class="btn-matricula">Matricular-se</a>
-                <button type="button" class="btn-comprar-teste" data-course-id="${curso.id}" title="Botão de teste - ocultar em produção">Comprar (Teste)</button>
+                <button type="button" id="btnPagar" class="btn-comprar-teste" data-course-id="${curso.id}">Pagar agora</button>
                 <a href="index.html" class="btn-voltar">Voltar</a>
+                <p id="mensagemErro" style="color: red; margin-top: 0.5rem;"></p>
             </div>
         </div>
         <div class="curso-descricao">
@@ -220,47 +218,55 @@ function inicializar() {
     setTimeout(tentarRenderizar, 100);
 }
 
+/**
+ * Envia POST /checkout/create ao backend, recebe init_point e redireciona para o Mercado Pago.
+ * Erros: rede, HTTP não 200, resposta sem init_point → mensagem em #mensagemErro.
+ */
 async function iniciarCheckout(e) {
-    const btn = e.target.closest('.btn-comprar-teste');
+    var btn = e.target.closest("#btnPagar");
     if (!btn) return;
-    const courseId = btn.dataset.courseId;
+    var courseId = btn.getAttribute("data-course-id");
     if (!courseId) return;
 
+    var mensagemErro = document.getElementById("mensagemErro");
+    if (mensagemErro) mensagemErro.textContent = "";
+
     btn.disabled = true;
-    btn.textContent = 'Aguarde...';
+    btn.textContent = "Aguarde...";
 
     try {
-        const res = await fetch(`${API_BASE_URL}/checkout/create`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ courseId }),
+        var res = await fetch(API_BASE_URL + "/checkout/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ courseId: courseId }),
         });
-        const text = await res.text();
-        let data;
+
+        var text = await res.text();
+        var data;
         try {
             data = JSON.parse(text);
         } catch {
-            throw new Error('Backend não encontrado. Confira se a API está hospedada em ' + API_BASE_URL);
+            throw new Error("Resposta inválida do servidor.");
         }
 
         if (!res.ok) {
-            throw new Error(data.message || 'Erro ao criar checkout');
+            throw new Error(data.message || "Erro ao criar checkout.");
         }
         if (data.init_point) {
             window.location.href = data.init_point;
-        } else {
-            throw new Error('Resposta inválida do servidor');
+            return;
         }
+        throw new Error("Resposta inválida do servidor.");
     } catch (err) {
-        alert('Erro: ' + err.message);
+        if (mensagemErro) mensagemErro.textContent = err.message || "Erro de rede. Tente novamente.";
         btn.disabled = false;
-        btn.textContent = 'Comprar (Teste)';
+        btn.textContent = "Pagar agora";
     }
 }
 
 function delegarEventos() {
-    document.addEventListener('click', function (e) {
-        if (e.target.closest('.btn-comprar-teste') && !e.target.closest('.btn-comprar-teste').disabled) {
+    document.addEventListener("click", function (e) {
+        if (e.target.closest("#btnPagar") && !e.target.closest("#btnPagar").disabled) {
             e.preventDefault();
             iniciarCheckout(e);
         }

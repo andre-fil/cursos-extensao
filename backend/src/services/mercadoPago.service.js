@@ -36,7 +36,9 @@ export async function createPreference(courseId) {
   const course = getCourseById(courseId);
   if (!course) throw new Error("Curso não encontrado");
 
-  const baseUrl = process.env.BASE_URL || "";
+  const baseUrl = (process.env.BASE_URL || "").replace(/\/$/, "");
+  if (!baseUrl) throw new Error("BASE_URL não configurado no servidor");
+
   const body = {
     items: [
       {

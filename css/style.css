@@ -1555,3 +1555,59 @@ footer {
         padding: 0.5rem 1rem;
     }
 }
+
+/* ============================================
+   Páginas de retorno do pagamento (Mercado Pago)
+   ============================================ */
+.status-page-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
+.status-page {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.status-page h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.status-page p {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.status-page-meta {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+}
+
+.status-page .btn-matricula {
+    display: inline-block;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.status-page .btn-matricula:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+}
+
+.status-page--sucesso h2 { color: #059669; }
+.status-page--erro h2 { color: #dc2626; }
+.status-page--pendente h2 { color: #d97706; }

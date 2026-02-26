@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento pendente - FEMAF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a href="index.html" class="logo-link">
+                <img src="img/LOGO FEMAF 02.png" alt="Logo FEMAF" class="logo-femaf">
+            </a>
+            <h1><a href="index.html">Cursos de Extensão - EAD FEMAF</a></h1>
+        </div>
+    </header>
+    <main class="status-page-wrapper">
+        <div class="status-page status-page--pendente">
+            <h2>Pagamento pendente</h2>
+            <p>Seu pagamento está em análise. Assim que for confirmado, você receberá as instruções de acesso ao curso.</p>
+            <p class="status-page-meta" id="status-meta"></p>
+            <a href="index.html" class="btn-matricula">Voltar aos cursos</a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Cursos de Extensão. Todos os direitos reservados.</p>
+    </footer>
+    <script src="js/chatbot.js"></script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var ref = params.get('external_reference');
+            var id = params.get('payment_id');
+            var meta = document.getElementById('status-meta');
+            if (ref || id) {
+                var parts = [];
+                if (ref) parts.push('Curso: ' + ref);
+                if (id) parts.push('Pagamento: ' + id);
+                meta.textContent = parts.join(' · ');
+            }
+        })();
+    </script>
+</body>
+</html>

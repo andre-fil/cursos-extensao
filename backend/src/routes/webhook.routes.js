@@ -46,7 +46,7 @@ router.post("/mercadopago", (req, res) => {
         console.log("✅ PAGAMENTO APROVADO — FLUXO OK (SEM MOODLE)");
       }
     } catch (err) {
-      console.error("[webhook] Erro ao processar:", err.message);
+      console.log("[webhook] Erro ao processar:", err.message);
     }
   });
 });

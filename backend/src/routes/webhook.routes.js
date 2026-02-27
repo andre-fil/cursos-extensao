@@ -1,126 +1,50 @@
 import { Router } from "express";
 import { getPaymentById } from "../services/mercadoPago.service.js";
-import { findUserByRegistration, createUser, enrollUserInCourse } from "../services/moodle.service.js";
-import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
 
 /**
- * Parseia external_reference: "COURSE_ID|existing|REGISTRATION" ou "COURSE_ID|new|EMAIL"
+ * Extrai paymentId do payload do Mercado Pago (tolerante a variações).
+ * Ordem: body.data.id, body.resource.id, body.id, query["data.id"]
  */
-function parseExternalReference(ref) {
-  if (!ref || typeof ref !== "string") return null;
-  const parts = ref.split("|");
-  if (parts.length !== 3) return null;
-  return { courseId: parts[0], type: parts[1], value: parts[2] };
+function extractPaymentId(req) {
+  const body = req.body || {};
+  return (
+    body.data?.id ??
+    body.resource?.id ??
+    body.id ??
+    req.query["data.id"] ??
+    null
+  );
 }
 
 /**
  * POST /webhook/mercadopago
- * Fonte da verdade: sempre usar webhook. Nunca confiar em redirect.
- * Pagamento aprovado → criar ou localizar usuário → matricular no Moodle.
- * Sempre responde 200 para o MP.
+ * Instrumentação para testes: valida fluxo Pagamento → Webhook → Backend.
+ * NÃO integra Moodle; apenas logs e resposta 200.
  */
-router.post("/mercadopago", async (req, res) => {
+router.post("/mercadopago", (req, res) => {
   res.status(200).send();
 
-  const dataId = req.query["data.id"] || req.body?.data?.id;
-  const type = req.query.type || req.body?.type;
+  console.log("[webhook] BODY:", JSON.stringify(req.body));
 
-  // Diagnóstico: confirma que o webhook foi chamado e com quais parâmetros
-  console.log("[webhook] Chamada recebida. query[data.id]=" + req.query["data.id"] + " query[type]=" + req.query.type + " body.data.id=" + (req.body?.data?.id) + " body.type=" + (req.body?.type));
-
-  if (!dataId || type !== "payment") {
-    console.log("[webhook] Ignorado: data.id ou type ausente (dataId=" + dataId + " type=" + type + ")");
+  const paymentId = extractPaymentId(req);
+  if (!paymentId) {
+    console.log("[webhook] Ignorado: sem paymentId");
     return;
   }
 
+  console.log("[webhook] paymentId:", paymentId);
+
   setImmediate(async () => {
     try {
-      const payment = await getPaymentById(dataId);
+      const payment = await getPaymentById(paymentId);
+      console.log("[webhook] payment.status:", payment.status);
+      console.log("[webhook] external_reference:", payment.external_reference ?? payment.external_reference_id);
 
-      // === LOGS DE DIAGNÓSTICO (remover após confirmar fluxo) ===
-      console.log("[webhook] STATUS:", payment.status);
-      console.log("[webhook] DETAIL:", payment.status_detail);
-      console.log("[webhook] external_reference:", payment.external_reference);
-      console.log("[webhook] external_reference_id:", payment.external_reference_id);
-      console.log("[webhook] PAYMENT (resumo):", {
-        id: payment.id,
-        status: payment.status,
-        status_detail: payment.status_detail,
-        external_reference: payment.external_reference,
-        external_reference_id: payment.external_reference_id,
-      });
-
-      const status = payment.status;
-      const statusDetail = payment.status_detail || "";
-      const externalRef = payment.external_reference || payment.external_reference_id;
-
-      if (!externalRef) {
-        console.log("[webhook] ABORT: external_reference e external_reference_id ausentes. Backend não sabe quem matricular nem em qual curso.");
-        return;
+      if (payment.status === "approved") {
+        console.log("✅ PAGAMENTO APROVADO — FLUXO OK (SEM MOODLE)");
       }
-
-      if (status !== "approved") {
-        console.log("[webhook] Status não aprovado, nenhuma ação no Moodle. status=" + status + " status_detail=" + statusDetail);
-        return;
-      }
-
-      // Pagamento aprovado: opcionalmente exige status_detail "accredited" (ajuste se necessário)
-      const detailOk = !statusDetail || /accredited|approved/i.test(statusDetail);
-      if (!detailOk) {
-        console.log("[webhook] Status aprovado mas status_detail não considerado válido:", statusDetail);
-        return;
-      }
-
-      const parsed = parseExternalReference(externalRef);
-      if (!parsed) {
-        console.log("[webhook] external_reference inválido (formato esperado: COURSE_ID|existing|VAL ou COURSE_ID|new|EMAIL):", externalRef);
-        return;
-      }
-
-      const { courseId, type: userType, value } = parsed;
-      const moodleCourseId = getMoodleCourseId(courseId);
-
-      if (!moodleCourseId) {
-        console.log("[webhook] Curso não mapeado para Moodle:", courseId);
-        return;
-      }
-
-      let moodleUserId;
-
-      if (userType === "existing") {
-        const registration = value;
-        const existingUser = await findUserByRegistration(registration);
-        if (!existingUser) {
-          console.log("[webhook] Usuário não encontrado no Moodle (matrícula):", registration);
-          return;
-        }
-        moodleUserId = existingUser.id;
-        console.log("[webhook] Tipo: existing. Usuário Moodle:", moodleUserId);
-      } else if (userType === "new") {
-        const payer = payment.payer || {};
-        const email = value || payer.email;
-        if (!email) {
-          console.log("[webhook] Email ausente no pagamento para tipo new");
-          return;
-        }
-        const userData = {
-          firstname: payer.first_name || payer.firstname || "Nome",
-          lastname: payer.last_name || payer.lastname || "Sobrenome",
-          email: email,
-          cpf: payer.identification?.number || "",
-        };
-        const newUser = await createUser(userData);
-        moodleUserId = newUser.id;
-        console.log("[webhook] Tipo: new. Usuário criado no Moodle:", moodleUserId);
-      } else {
-        console.log("[webhook] Tipo desconhecido:", userType);
-        return;
-      }
-
-      await enrollUserInCourse(moodleUserId, moodleCourseId);
-      console.log("[webhook] Matrícula realizada. user:", moodleUserId, "course:", moodleCourseId);
     } catch (err) {
       console.error("[webhook] Erro ao processar:", err.message);
     }

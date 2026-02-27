@@ -87,7 +87,11 @@ export async function createPreference(courseId, options = {}) {
 
   const preference = await preferenceClient.create({ body });
   if (!preference.init_point) throw new Error("Resposta MP sem init_point");
-  return preference.init_point;
+  return {
+    init_point: preference.init_point,
+    preferenceId: preference.id ?? preference.body?.id,
+    external_reference: externalReference,
+  };
 }
 
 const paymentClient = new Payment(client);

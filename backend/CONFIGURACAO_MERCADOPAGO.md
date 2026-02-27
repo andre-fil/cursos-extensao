@@ -18,17 +18,36 @@ Guia completo para configurar corretamente e de forma segura as credenciais do M
 
 ---
 
-## 2. Diferença entre Token de Teste e Produção
+## 2. Diferença entre Credenciais de Teste e Produção
 
-| Aspecto | Token de Teste | Token de Produção |
-|---------|----------------|-------------------|
+| Aspecto | Credenciais de Teste | Credenciais de Produção |
+|---------|----------------------|-------------------------|
 | **Uso** | Desenvolvimento e homologação | Cobranças reais |
 | **Valores** | Transações simuladas (sem dinheiro real) | Pagamentos reais |
 | **Usuários** | Contas de teste configuradas no painel | Qualquer usuário Mercado Pago |
-| **Prefixo** | `TEST-` | `APP_USR-` |
-| **Onde gerar** | Disponível imediatamente | Requer aprovação da aplicação |
+| **Formato** | Public Key e Access Token podem começar com `APP_USR-` | Idem |
+| **Onde obter** | Painel → Suas integrações → App → **Credenciais** → aba **Teste** | Mesma tela → aba **Produção** |
 
-**Regra de ouro:** Use token de **teste** durante todo o desenvolvimento; troque para **produção** apenas no deploy final após testes.
+**Importante:** Tanto as credenciais de teste quanto as de produção podem ter o prefixo `APP_USR-`. O que define o ambiente é **de qual aba você copiou** no painel (Teste vs Produção), não o formato da chave.
+
+**Regra de ouro:** Use credenciais de **teste** durante todo o desenvolvimento; troque para **produção** apenas no deploy final após homologação.
+
+---
+
+## 2.1 Verificação para ambiente de teste (FEMAF)
+
+Para garantir que está tudo em **teste**:
+
+1. Acesse **https://www.mercadopago.com.br/developers/panel/app**
+2. Selecione sua aplicação → abra **Credenciais** (lado direito).
+3. Confirme que está na aba **Teste** (não em Produção).
+4. **Public Key (teste):** aparece nessa aba. No projeto FEMAF (Checkout Pro com redirect) o backend **não usa** a Public Key — ela só seria necessária se houver formulário de cartão no frontend. Guarde-a se for usar SDK no frontend no futuro.
+5. **Access Token (teste):** copie e coloque **apenas** no arquivo `.env` (nunca no Git), como `MP_ACCESS_TOKEN=...`.
+
+**Checklist rápido:**
+- [ ] Estou na aba **Credenciais de teste** no painel?
+- [ ] O `MP_ACCESS_TOKEN` no `.env` foi colado da aba **Teste**?
+- [ ] O `.env` está no `.gitignore` e não foi commitado?
 
 ---
 
@@ -44,11 +63,11 @@ MP_ACCESS_TOKEN=
 ### Arquivo `.env` (NÃO versionar, criar localmente):
 
 ```env
-# Desenvolvimento - Token de teste
-MP_ACCESS_TOKEN=TEST-1234567890123456-012345-abcdef1234567890abcdef1234567890-123456789
+# Desenvolvimento - Access Token copiado da aba "Credenciais de teste" do painel MP
+MP_ACCESS_TOKEN=APP_USR-xxxx...
 
-# Produção (trocar quando for para live)
-# MP_ACCESS_TOKEN=APP_USR-1234567890123456-012345-abcdef1234567890abcdef1234567890-123456789
+# Produção (trocar quando for para live) - copiar da aba "Credenciais de produção"
+# MP_ACCESS_TOKEN=APP_USR-xxxx...
 ```
 
 ### Código Node.js:

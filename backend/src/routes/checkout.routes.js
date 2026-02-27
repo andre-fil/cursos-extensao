@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { getCourseById, createPreference, getPaymentById } from "../services/mercadoPago.service.js";
-import { findUserByEmail, findUserByRegistration, isUserEnrolledInCourse } from "../services/moodle.service.js";
-import { getMoodleCourseId } from "../utils/courseMap.js";
+// Moodle desativado para testes isolados
+// import { findUserByEmail, findUserByRegistration, isUserEnrolledInCourse } from "../services/moodle.service.js";
+// import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ function parseExternalReference(ref) {
  */
 router.post("/create", async (req, res) => {
   try {
+    console.log("[checkout] payload recebido:", req.body);
     const { courseId, type, registration, user } = req.body;
 
     if (!courseId || typeof courseId !== "string") {
@@ -74,7 +76,12 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    const init_point = await createPreference(courseId, { type, registration, user });
+    const result = await createPreference(courseId, { type, registration, user });
+    const init_point = result.init_point;
+    const externalReference = result.external_reference;
+    const preferenceId = result.preferenceId;
+    console.log("[checkout] external_reference:", externalReference);
+    console.log("[checkout] preference id:", preferenceId);
     res.json({ init_point });
   } catch (err) {
     console.error("[checkout/create]", err.message);
@@ -87,17 +94,19 @@ router.post("/create", async (req, res) => {
 
 /**
  * GET /checkout/verify-enrollment?payment_id=123
- * Valida se o pagamento foi aprovado e se o aluno foi criado/matriculado no Moodle.
+ * Valida se o pagamento foi aprovado. (Moodle desativado: não verifica matrícula.)
  * Retorna { ok, created, email?, pending? } para exibir na página de sucesso.
  */
 router.get("/verify-enrollment", async (req, res) => {
   try {
     const paymentId = req.query.payment_id;
+    console.log("[checkout/verify-enrollment] Requisição recebida. payment_id:", paymentId);
     if (!paymentId) {
       return res.status(400).json({ ok: false, error: "payment_id é obrigatório" });
     }
 
     const payment = await getPaymentById(paymentId);
+    console.log("[checkout/verify-enrollment] Pagamento obtido:", { status: payment.status, external_ref: payment.external_reference || payment.external_reference_id });
     if (payment.status !== "approved") {
       return res.json({ ok: false, created: false, status: payment.status || "unknown" });
     }
@@ -108,41 +117,17 @@ router.get("/verify-enrollment", async (req, res) => {
       return res.json({ ok: false, created: false, error: "external_reference inválido" });
     }
 
-    const { courseId, type: userType, value } = parsed;
-    const moodleCourseId = getMoodleCourseId(courseId);
-    if (!moodleCourseId) {
-      return res.json({ ok: false, created: false, error: "Curso não mapeado" });
-    }
-
+    const { type: userType, value } = parsed;
+    console.log("[checkout/verify-enrollment] external_reference parseado:", parsed);
+    // Moodle desativado: retorna ok com pending=true e email (para sucesso.html exibir dados)
     if (userType === "new") {
-      const email = value || payment.payer?.email;
-      if (!email) {
-        return res.json({ ok: false, created: false, email: null });
-      }
-      const user = await findUserByEmail(email);
-      if (!user) {
-        return res.json({ ok: true, created: false, pending: true, email });
-      }
-      const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
-      if (!enrolled) {
-        return res.json({ ok: true, created: false, pending: true, email });
-      }
-      return res.json({ ok: true, created: true, email });
+      const email = value || payment.payer?.email || null;
+      console.log("[checkout/verify-enrollment] Resposta: ok, pending, email:", email);
+      return res.json({ ok: true, created: false, pending: true, email });
     }
-
     if (userType === "existing") {
-      const registration = value;
-      const user = await findUserByRegistration(registration);
-      if (!user) {
-        return res.json({ ok: true, created: false, pending: true });
-      }
-      const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
-      if (!enrolled) {
-        return res.json({ ok: true, created: false, pending: true });
-      }
-      return res.json({ ok: true, created: true });
+      return res.json({ ok: true, created: false, pending: true });
     }
-
     return res.json({ ok: false, created: false });
   } catch (err) {
     console.error("[checkout/verify-enrollment]", err.message);

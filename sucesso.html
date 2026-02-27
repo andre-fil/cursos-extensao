@@ -43,8 +43,9 @@
     <script>
         (function () {
             var API_BASE_URL = "https://qmqump3csh.us-east-1.awsapprunner.com";
-            var MOODLE_BASE_URL = "https://ead.femaf.com.br";
-            var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
+            // Moodle desativado para testes isolados
+            // var MOODLE_BASE_URL = "https://ead.femaf.com.br";
+            // var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
 
             var params = new URLSearchParams(window.location.search);
             var ref = params.get('external_reference');
@@ -77,16 +78,17 @@
                 if (meta) meta.textContent = parts.join(' · ');
             }
 
-            if (MOODLE_BASE_URL && ref) {
-                var courseId = ref.indexOf('|') >= 0 ? ref.split('|')[0] : ref;
-                var moodleId = COURSE_MOODLE_IDS[courseId];
-                if (moodleId && btnAcessar) {
-                    btnAcessar.href = MOODLE_BASE_URL.replace(/\/$/, '') + '/course/view.php?id=' + moodleId;
-                    btnAcessar.style.display = 'inline-block';
-                    btnAcessar.target = '_blank';
-                    btnAcessar.rel = 'noopener noreferrer';
-                }
-            }
+            // Moodle desativado para testes isolados - botão "Acessar o curso no EAD" oculto
+            // if (MOODLE_BASE_URL && ref) {
+            //     var courseId = ref.indexOf('|') >= 0 ? ref.split('|')[0] : ref;
+            //     var moodleId = COURSE_MOODLE_IDS[courseId];
+            //     if (moodleId && btnAcessar) {
+            //         btnAcessar.href = MOODLE_BASE_URL.replace(/\/$/, '') + '/course/view.php?id=' + moodleId;
+            //         btnAcessar.style.display = 'inline-block';
+            //         btnAcessar.target = '_blank';
+            //         btnAcessar.rel = 'noopener noreferrer';
+            //     }
+            // }
 
             // Validar no backend se o aluno foi criado e matriculado
             if (API_BASE_URL && paymentId && acessoStatus) {

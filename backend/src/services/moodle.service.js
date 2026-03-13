@@ -39,8 +39,9 @@ export async function getUserByEmail(email) {
   console.log("[moodle] response:", data);
 
   if (data.exception) throw new Error(data.message || data.exception);
-  if (!Array.isArray(data) || data.length === 0) return null;
-  const u = data[0];
+  const users = Array.isArray(data) ? data : (data.users || []);
+  if (users.length === 0) return null;
+  const u = users[0];
   return { id: u.id, username: u.username, email: u.email };
 }
 

@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import checkoutRoutes from "./routes/checkout.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
+import moodleRoutes from "./routes/moodle.routes.js";
 
 if (!process.env.MP_ACCESS_TOKEN) {
   console.error("[ERRO] MP_ACCESS_TOKEN não definido. Configure no App Runner.");
@@ -31,6 +32,7 @@ app.get("/health", (req, res) => {
 
 app.use("/checkout", checkoutRoutes);
 app.use("/webhook", webhookRoutes);
+app.use("/moodle", moodleRoutes);
 
 app.use((req, res) => {
   console.log("[API] 404 - Rota não encontrada:", req.method, req.originalUrl);

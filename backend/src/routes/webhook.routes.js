@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getPaymentById } from "../services/mercadoPago.service.js";
 import { getUserByEmail, createUser, enrollUserInCourse } from "../services/moodle.service.js";
+import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
 
@@ -61,10 +62,7 @@ router.post("/mercadopago", (req, res) => {
         console.log("[webhook] email:", email);
 
         // Mapeamento de cursos (EXT-XXX -> ID do Moodle)
-        const COURSE_MAP = {
-          "EXT-001": 12,
-        };
-        const courseId = COURSE_MAP[extCourseId];
+        const courseId = getMoodleCourseId(extCourseId);
         if (!courseId) {
           console.log("[webhook] Curso não mapeado:", extCourseId);
           return;

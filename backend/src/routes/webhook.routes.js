@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getPaymentById } from "../services/mercadoPago.service.js";
+import { getUserByEmail, createUser, enrollUserInCourse } from "../services/moodle.service.js";
 
 const router = Router();
 
@@ -40,10 +41,56 @@ router.post("/mercadopago", (req, res) => {
     try {
       const payment = await getPaymentById(paymentId);
       console.log("[webhook] payment.status:", payment.status);
-      console.log("[webhook] external_reference:", payment.external_reference ?? payment.external_reference_id);
+      const external_reference = payment.external_reference ?? payment.external_reference_id;
+      console.log("[webhook] external_reference:", external_reference);
 
       if (payment.status === "approved") {
-        console.log("✅ PAGAMENTO APROVADO — FLUXO OK (SEM MOODLE)");
+        console.log("[webhook] external_reference:", external_reference);
+
+        const refString = typeof external_reference === "string" ? external_reference : "";
+        const parts = refString.split("|");
+        if (parts.length !== 3) {
+          console.log("[webhook] external_reference inválido (esperado COURSE_ID|type|identifier):", external_reference);
+          return;
+        }
+
+        const [extCourseId, type, identifier] = parts;
+
+        // Para agora: usar identifier direto como email (placeholder para "buscar email pela matrícula")
+        let email = identifier;
+        console.log("[webhook] email:", email);
+
+        // Mapeamento de cursos (EXT-XXX -> ID do Moodle)
+        const COURSE_MAP = {
+          "EXT-001": 12,
+        };
+        const courseId = COURSE_MAP[extCourseId];
+        if (!courseId) {
+          console.log("[webhook] Curso não mapeado:", extCourseId);
+          return;
+        }
+
+        let user = await getUserByEmail(email);
+        console.log("[webhook] user encontrado:", user);
+
+        if (!user) {
+          const newUser = await createUser({
+            email,
+            firstname: "Aluno",
+            lastname: "FEMAF",
+          });
+          user = { id: newUser.id, email, username: email };
+          console.log("[webhook] user encontrado:", user);
+        }
+
+        if (!user?.id) {
+          console.log("[webhook] Não foi possível obter o ID do usuário para matricular:", { email });
+          return;
+        }
+
+        console.log("[webhook] matriculando no curso:", courseId);
+        await enrollUserInCourse(user.id, courseId);
+        console.log("✅ PAGAMENTO APROVADO — FLUXO OK (MATRICULA NO MOODLE)");
       }
     } catch (err) {
       console.log("[webhook] Erro ao processar:", err.message);

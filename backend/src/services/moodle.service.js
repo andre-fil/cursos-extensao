@@ -16,6 +16,15 @@ function buildMoodleUrl(params) {
   return `${MOODLE_BASE_URL}/webservice/rest/server.php?${searchParams.toString()}`;
 }
 
+/** Operações de escrita: POST com parâmetros só na URL (sem body), evita limite/travamento de GET longo. */
+async function moodleWrite(url) {
+  console.log("[moodle] request (POST):", url.replace(/wstoken=[^&]*/, "wstoken=***"));
+  const res = await fetch(url, { method: "POST" });
+  const data = await res.json();
+  console.log("[moodle] response:", data);
+  return data;
+}
+
 /**
  * Busca usuário no Moodle pelo e-mail.
  * wsfunction=core_user_get_users, critéria email.
@@ -83,11 +92,7 @@ export async function createUser(user) {
     "users[0][lang]": "pt_br",
   };
   const url = buildMoodleUrl(params);
-  console.log("[moodle] request:", url);
-
-  const res = await fetch(url, { method: "GET" });
-  const data = await res.json();
-  console.log("[moodle] response:", data);
+  const data = await moodleWrite(url);
 
   if (data.exception) throw new Error(data.message || data.exception);
   const createdUsers = Array.isArray(data) ? data : (Array.isArray(data.users) ? data.users : []);
@@ -140,12 +145,21 @@ export async function enrollUserInCourse(userId, moodleCourseId) {
   };
 
   const url = buildMoodleUrl(params);
-  console.log("[moodle] request:", url);
-  const res = await fetch(url, { method: "GET" });
-  const data = await res.json();
-  console.log("[moodle] response:", data);
+  const data = await moodleWrite(url);
 
-  if (data.exception) throw new Error(data.message || data.exception);
+  if (data.exception) {
+    const msg = String(data.message || data.errorcode || data.exception);
+
+    // O enrol_manual_enrol_users pode falhar no envio de mensagem/notification
+    // mas ainda assim criar a matrícula. Para não impedir o fluxo, tratamos
+    // esse caso como não-bloqueante.
+    if (/Message was not sent/i.test(msg)) {
+      console.log("[moodle] Warning: ignorando falha de envio de mensagem:", msg);
+      return;
+    }
+
+    throw new Error(msg);
+  }
 }
 
 // Alias para compatibilidade com nomenclatura do usuário.

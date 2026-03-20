@@ -1,23 +1,42 @@
 import { Router } from "express";
 import { getPaymentById } from "../services/mercadoPago.service.js";
-import { getUserByEmail, createUser, enrollUserInCourse } from "../services/moodle.service.js";
+import { getUserByEmail, createUser, enrollUserInCourse, isUserEnrolledInCourse } from "../services/moodle.service.js";
 import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
 
 /**
- * Extrai paymentId do payload do Mercado Pago (tolerante a variações).
- * Ordem: body.data.id, body.resource.id, body.id, query["data.id"]
+ * Extrai paymentId do payload do Mercado Pago (JSON ou form-urlencoded).
  */
 function extractPaymentId(req) {
   const body = req.body || {};
-  return (
+  const q = req.query || {};
+
+  let id =
     body.data?.id ??
     body.resource?.id ??
     body.id ??
-    req.query["data.id"] ??
-    null
-  );
+    q["data.id"] ??
+    q.id ??
+    null;
+
+  // Chaves “achatadas” em form: data.id=... ou data[id]=...
+  if (id == null && body["data.id"] != null) id = body["data.id"];
+  if (id == null && body["data[id]"] != null) id = body["data[id]"];
+
+  // Formato legado: topic=payment & resource=ID ou id=ID
+  if (id == null && String(body.topic || "").toLowerCase() === "payment") {
+    const r = body.resource ?? body.id;
+    if (r != null && /^\d+$/.test(String(r))) id = r;
+  }
+
+  // resource como URL .../payments/12345
+  if (id == null && typeof body.resource === "string") {
+    const m = body.resource.match(/\/payments\/(\d+)/);
+    if (m) id = m[1];
+  }
+
+  return id != null ? String(id) : null;
 }
 
 /**
@@ -32,7 +51,12 @@ router.post("/mercadopago", (req, res) => {
 
   const paymentId = extractPaymentId(req);
   if (!paymentId) {
-    console.log("[webhook] Ignorado: sem paymentId");
+    console.log(
+      "[webhook] Ignorado: sem paymentId | Content-Type:",
+      req.headers["content-type"],
+      "| keys body:",
+      req.body && typeof req.body === "object" ? Object.keys(req.body).join(",") : typeof req.body
+    );
     return;
   }
 
@@ -88,10 +112,19 @@ router.post("/mercadopago", (req, res) => {
 
         console.log("[webhook] matriculando no curso:", courseId);
         await enrollUserInCourse(user.id, courseId);
-        console.log("✅ PAGAMENTO APROVADO — FLUXO OK (MATRICULA NO MOODLE)");
+        const enrolled = await isUserEnrolledInCourse(user.id, courseId);
+        if (enrolled) {
+          console.log("✅ PAGAMENTO APROVADO — FLUXO OK (MATRICULA NO MOODLE)");
+        } else {
+          console.log("[webhook] ⚠️ tentativa de matrícula não confirmada no Moodle", {
+            userId: user.id,
+            courseId,
+          });
+        }
       }
     } catch (err) {
-      console.log("[webhook] Erro ao processar:", err.message);
+      console.error("[webhook] Erro ao processar:", err.message);
+      if (err.stack) console.error(err.stack);
     }
   });
 });

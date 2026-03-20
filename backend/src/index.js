@@ -27,6 +27,8 @@ app.use(
   })
 );
 app.use(express.json({ limit: "10kb" }));
+// Mercado Pago costuma enviar webhook como application/x-www-form-urlencoded (não JSON)
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
 app.use((req, res, next) => {
   console.log("[API]", req.method, req.originalUrl);

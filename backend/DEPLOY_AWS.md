@@ -57,6 +57,11 @@ App Runner faz build e deploy a partir do repositório, com HTTPS incluso.
    | `API_BASE_URL` | Deixe em branco por enquanto; depois coloque a URL do App Runner |
    | `MP_WEBHOOK_SECRET` | (chave do webhook no painel MP) |
    | `PORT` | `3000` |
+   | `MOODLE_BASE_URL` | `https://ead.femaf.com.br` |
+   | `MOODLE_TOKEN` | (token do Web Service do Moodle) |
+   | `MOODLE_ROLE_ID` | `5` (papel estudante) |
+   | `MOODLE_TEST_PASSWORD` | (opcional; senha ao criar usuário no webhook se não vier no fluxo) |
+   | `APP_DEPLOY_TAG` | (opcional; ex.: `20260319-1` — aparece em `GET /health` para confirmar deploy) |
 
 5. Avance com **Next**
 
@@ -65,6 +70,16 @@ App Runner faz build e deploy a partir do repositório, com HTTPS incluso.
 1. **Virtual router:** deixe padrão (público)
 2. **Health check:** pode deixar `/health` e porta `3000`
 3. Clique em **Create & deploy**
+
+## Conferir se o deploy é o código certo
+
+Após subir, abra no navegador ou Postman:
+
+`GET https://SUA-URL-DO-APP-RUNNER/health`
+
+A resposta inclui `version` (do `package.json`, ex.: `1.1.0`) e, se você definiu, `deployTag`.
+
+- Se nos **logs** ainda aparecer texto antigo (ex.: “Moodle DESATIVADO” em rotas que já foram alteradas), o serviço pode estar com **imagem em cache** ou **branch/commit errado**. Aumente `APP_DEPLOY_TAG` e faça novo deploy, ou force rebuild no App Runner.
 
 ## Passo 5: Obter a URL
 

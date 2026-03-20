@@ -22,8 +22,8 @@ function extractPaymentId(req) {
 
 /**
  * POST /webhook/mercadopago
- * Instrumentação para testes: valida fluxo Pagamento → Webhook → Backend.
- * NÃO integra Moodle; apenas logs e resposta 200.
+ * Responde 200 imediatamente ao MP; em background consulta o pagamento.
+ * Se approved: busca/cria usuário no Moodle e matricula no curso (courseMap).
  */
 router.post("/mercadopago", (req, res) => {
   res.status(200).send();

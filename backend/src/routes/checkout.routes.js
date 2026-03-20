@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getCourseById, createPreference } from "../services/mercadoPago.service.js";
-// Moodle e verify-enrollment desativados para teste de fluxo MP/AWS
-// import { getPaymentById } from "../services/mercadoPago.service.js";
+import { getCourseById, createPreference, getPaymentById } from "../services/mercadoPago.service.js";
+import { getUserByEmail, isUserEnrolledInCourse } from "../services/moodle.service.js";
+import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
 
@@ -75,7 +75,6 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    console.log("[checkout] Moodle DESATIVADO — teste de fluxo MP/AWS");
     const result = await createPreference(courseId, { type, registration, user });
     const init_point = result.init_point;
     const externalReference = result.external_reference;
@@ -93,12 +92,53 @@ router.post("/create", async (req, res) => {
 });
 
 /**
- * GET /checkout/verify-enrollment — DESATIVADO para teste de fluxo MP/AWS.
- * Não chama Moodle; apenas log e resposta stub para a página de sucesso não quebrar.
+ * GET /checkout/verify-enrollment?payment_id=...
+ * Valida: pagamento aprovado no MP e matrícula efetivada no Moodle.
  */
-router.get("/verify-enrollment", (req, res) => {
-  console.log("[checkout] Moodle DESATIVADO — verify-enrollment não disponível (teste de fluxo MP/AWS)");
-  res.json({ ok: true, created: false, pending: true });
+router.get("/verify-enrollment", async (req, res) => {
+  try {
+    const paymentId = req.query.payment_id;
+    if (!paymentId) return res.status(400).json({ ok: false, error: "payment_id é obrigatório" });
+
+    const payment = await getPaymentById(paymentId);
+    const status = payment.status || "unknown";
+    const externalRef = payment.external_reference ?? payment.external_reference_id;
+
+    if (status !== "approved") {
+      return res.json({ ok: false, created: false, pending: true, status });
+    }
+
+    if (!externalRef || typeof externalRef !== "string") {
+      return res.json({ ok: false, created: false, pending: true, status, error: "external_reference ausente" });
+    }
+
+    const parsed = parseExternalReference(externalRef);
+    if (!parsed) {
+      return res.json({ ok: false, created: false, pending: true, status, error: "external_reference inválido" });
+    }
+
+    const moodleCourseId = getMoodleCourseId(parsed.courseId);
+    if (!moodleCourseId) {
+      return res.json({ ok: true, created: false, pending: true, status, error: "Curso não mapeado" });
+    }
+
+    // Para agora: usar identifier como email (mesma regra do webhook)
+    const email = parsed.value;
+    const user = email ? await getUserByEmail(email) : null;
+    if (!user) {
+      return res.json({ ok: true, created: false, pending: true, status, email });
+    }
+
+    const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
+    if (!enrolled) {
+      return res.json({ ok: true, created: false, pending: true, status, email });
+    }
+
+    return res.json({ ok: true, created: true, pending: false, status, email });
+  } catch (err) {
+    console.error("[checkout/verify-enrollment]", err.message);
+    res.status(500).json({ ok: false, created: false, pending: true, error: err.message });
+  }
 });
 
 export default router;

@@ -111,8 +111,22 @@ export async function findUserByEmail(email) {
 }
 
 export async function isUserEnrolledInCourse(userId, courseId) {
-  console.log("[moodle] isUserEnrolledInCourse não implementado nesta etapa");
-  return false;
+  if (!userId || !courseId) return false;
+
+  const params = {
+    wsfunction: "core_enrol_get_enrolled_users",
+    courseid: String(courseId),
+  };
+  const url = buildMoodleUrl(params);
+  console.log("[moodle] request:", url);
+
+  const res = await fetch(url, { method: "GET" });
+  const data = await res.json();
+  console.log("[moodle] response:", data);
+
+  if (data.exception) throw new Error(data.message || data.exception);
+  const users = Array.isArray(data) ? data : (Array.isArray(data.users) ? data.users : []);
+  return users.some((u) => Number(u.id) === Number(userId));
 }
 
 export async function enrollUserInCourse(userId, moodleCourseId) {

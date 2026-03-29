@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getCourseById, createPreference, getPaymentById } from "../services/mercadoPago.service.js";
 import { getUserByEmail, isUserEnrolledInCourse } from "../services/moodle.service.js";
+import { syncMoodleAfterApprovedPayment } from "../services/moodleEnrollmentFromPayment.service.js";
 import { getMoodleCourseId } from "../utils/courseMap.js";
 
 const router = Router();
@@ -122,19 +123,60 @@ router.get("/verify-enrollment", async (req, res) => {
       return res.json({ ok: true, created: false, pending: true, status, error: "Curso não mapeado" });
     }
 
-    // Para agora: usar identifier como email (mesma regra do webhook)
-    const email = parsed.value;
-    const user = email ? await getUserByEmail(email) : null;
-    if (!user) {
-      return res.json({ ok: true, created: false, pending: true, status, email });
+    const emailFromRef = String(parsed.value ?? "").trim();
+    let user = emailFromRef.includes("@") ? await getUserByEmail(emailFromRef) : null;
+    let enrolled = false;
+    if (user) {
+      enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
     }
 
-    const enrolled = await isUserEnrolledInCourse(user.id, moodleCourseId);
-    if (!enrolled) {
-      return res.json({ ok: true, created: false, pending: true, status, email });
+    // Fallback: webhook do MP pode não ter chegado — cria/matrícula na hora da página de sucesso
+    if (!user || !enrolled) {
+      console.log("[checkout/verify-enrollment] sync Moodle (usuário ausente ou não matriculado)");
+      try {
+        const sync = await syncMoodleAfterApprovedPayment(payment, "[verify-enrollment]");
+        if (sync.enrolled) {
+          return res.json({
+            ok: true,
+            created: true,
+            pending: false,
+            status,
+            email: sync.email,
+          });
+        }
+        if (sync.ok && !sync.enrolled) {
+          return res.json({
+            ok: true,
+            created: false,
+            pending: true,
+            status,
+            email: sync.email ?? emailFromRef,
+            error: "matricula_nao_confirmada",
+          });
+        }
+        return res.json({
+          ok: true,
+          created: false,
+          pending: true,
+          status,
+          email: emailFromRef || undefined,
+          error: sync.reason || "sync_falhou",
+        });
+      } catch (syncErr) {
+        console.error("[checkout/verify-enrollment] sync:", syncErr.message);
+        if (syncErr.stack) console.error(syncErr.stack);
+        return res.json({
+          ok: true,
+          created: false,
+          pending: true,
+          status,
+          email: emailFromRef || undefined,
+          error: syncErr.message,
+        });
+      }
     }
 
-    return res.json({ ok: true, created: true, pending: false, status, email });
+    return res.json({ ok: true, created: true, pending: false, status, email: user.email });
   } catch (err) {
     console.error("[checkout/verify-enrollment]", err.message);
     res.status(500).json({ ok: false, created: false, pending: true, error: err.message });

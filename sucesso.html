@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagamento aprovado - FEMAF</title>
+    <title>Processando matrícula - FEMAF</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,19 +19,22 @@
         </div>
     </header>
     <main class="status-page-wrapper">
-        <div class="status-page status-page--sucesso">
-            <h2>Pagamento aprovado</h2>
-            <p>Seu pagamento foi confirmado e sua matrícula no curso foi realizada no ambiente EAD.</p>
-            <div class="status-page-acesso" id="boxAcesso">
+        <div class="status-page status-page--verificando" id="statusCard">
+            <h2 id="statusTitulo">Validando pagamento e matrícula…</h2>
+            <p id="statusMensagem">Aguarde enquanto confirmamos seu pagamento no Mercado Pago e sua matrícula no ambiente EAD. Isso pode levar até um minuto.</p>
+            <p class="status-page-meta" id="status-meta"></p>
+            <div class="status-page-acesso--placeholder" id="boxPlaceholder">
+                As instruções de acesso ao EAD (usuário e senha) só aparecem depois que a matrícula for confirmada nos sistemas.
+            </div>
+            <div class="status-page-acesso" id="boxAcesso" style="display: none;">
                 <p id="acessoTitulo"><strong>Como acessar o EAD:</strong></p>
                 <p id="acessoEmail" class="status-page-email" style="display: none;"></p>
                 <ul>
-                    <li><strong>Usuário:</strong> <span id="acessoUser">o e-mail que você informou no pagamento</span>.</li>
+                    <li><strong>Usuário:</strong> <span id="acessoUser">—</span>.</li>
                     <li><strong>Senha:</strong> seu <strong>CPF</strong> (apenas os 11 números, sem pontos ou traços).</li>
                 </ul>
-                <p id="acessoStatus" class="status-page-matricula-status" style="display: none;"></p>
+                <p id="acessoStatus" class="status-page-matricula-status status-page-matricula-ok" style="display: none;"></p>
             </div>
-            <p class="status-page-meta" id="status-meta"></p>
             <a href="#" id="btnAcessarCurso" class="btn-matricula status-page-btn-acessar" style="display: none;">Acessar o curso no EAD</a>
             <a href="index.html" class="btn-voltar-inline">Voltar aos cursos</a>
         </div>
@@ -43,89 +46,204 @@
     <script>
         (function () {
             var API_BASE_URL = "https://qmqump3csh.us-east-1.awsapprunner.com";
-            // Moodle desativado para testes isolados
-            // var MOODLE_BASE_URL = "https://ead.femaf.com.br";
-            // var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
+            var MOODLE_BASE_URL = "https://ead.femaf.com.br";
+            var COURSE_MOODLE_IDS = { "EXT-001": 1934 };
+
+            var MAX_ATTEMPTS = 15;
+            var INTERVAL_MS = 2500;
 
             var params = new URLSearchParams(window.location.search);
-            var ref = params.get('external_reference');
-            var paymentId = params.get('payment_id');
-            var meta = document.getElementById('status-meta');
-            var btnAcessar = document.getElementById('btnAcessarCurso');
-            var acessoUser = document.getElementById('acessoUser');
-            var acessoEmail = document.getElementById('acessoEmail');
-            var acessoStatus = document.getElementById('acessoStatus');
+            var ref = params.get("external_reference");
+            var paymentId = params.get("payment_id");
+            var meta = document.getElementById("status-meta");
+            var card = document.getElementById("statusCard");
+            var titulo = document.getElementById("statusTitulo");
+            var mensagem = document.getElementById("statusMensagem");
+            var boxPlaceholder = document.getElementById("boxPlaceholder");
+            var boxAcesso = document.getElementById("boxAcesso");
+            var btnAcessar = document.getElementById("btnAcessarCurso");
+            var acessoUser = document.getElementById("acessoUser");
+            var acessoEmail = document.getElementById("acessoEmail");
+            var acessoStatus = document.getElementById("acessoStatus");
 
-            // E-mail extraído da ref só para tipo new (COURSE_ID|new|EMAIL)
-            var refParts = ref && ref.indexOf('|') >= 0 ? ref.split('|') : [];
-            var isNewUser = refParts[1] === 'new';
+            var refParts = ref && ref.indexOf("|") >= 0 ? ref.split("|") : [];
+            var isNewUser = refParts[1] === "new";
             var emailFromRef = isNewUser ? refParts[2] : null;
-            if (emailFromRef && acessoUser) {
-                acessoUser.textContent = emailFromRef;
-            }
-            if (emailFromRef && acessoEmail) {
-                acessoEmail.textContent = 'E-mail de acesso: ' + emailFromRef;
-                acessoEmail.style.display = 'block';
-            }
-            if (!isNewUser && acessoUser) {
-                acessoUser.textContent = 'sua matrícula EAD (informada no pagamento)';
-            }
 
             if (ref || paymentId) {
                 var parts = [];
-                if (ref) parts.push('Curso: ' + ref.split('|')[0]);
-                if (paymentId) parts.push('Pagamento: ' + paymentId);
-                if (meta) meta.textContent = parts.join(' · ');
+                if (ref) parts.push("Curso: " + ref.split("|")[0]);
+                if (paymentId) parts.push("Pagamento: " + paymentId);
+                if (meta) meta.textContent = parts.join(" · ");
             }
 
-            // Moodle desativado para testes isolados - botão "Acessar o curso no EAD" oculto
-            // if (MOODLE_BASE_URL && ref) {
-            //     var courseId = ref.indexOf('|') >= 0 ? ref.split('|')[0] : ref;
-            //     var moodleId = COURSE_MOODLE_IDS[courseId];
-            //     if (moodleId && btnAcessar) {
-            //         btnAcessar.href = MOODLE_BASE_URL.replace(/\/$/, '') + '/course/view.php?id=' + moodleId;
-            //         btnAcessar.style.display = 'inline-block';
-            //         btnAcessar.target = '_blank';
-            //         btnAcessar.rel = 'noopener noreferrer';
-            //     }
-            // }
+            function setCardState(classe) {
+                card.className = "status-page " + classe;
+            }
 
-            // Validar no backend se o aluno foi criado e matriculado
-            if (API_BASE_URL && paymentId && acessoStatus) {
-                acessoStatus.style.display = 'block';
-                acessoStatus.textContent = 'Confirmando matrícula no EAD...';
-                acessoStatus.className = 'status-page-matricula-status status-page-matricula-pending';
-                fetch(API_BASE_URL + '/checkout/verify-enrollment?payment_id=' + encodeURIComponent(paymentId))
-                    .then(function (r) { return r.json(); })
-                    .then(function (data) {
-                        if (data.created) {
-                            acessoStatus.textContent = 'Matrícula confirmada no EAD.';
-                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-ok';
-                            if (data.email && acessoEmail) {
-                                acessoEmail.textContent = 'E-mail de acesso: ' + data.email;
-                                acessoEmail.style.display = 'block';
-                                if (acessoUser) acessoUser.textContent = data.email;
-                            }
-                        } else if (data.pending) {
-                            acessoStatus.textContent = 'Sua matrícula está sendo processada. Em instantes você poderá acessar o EAD com o e-mail acima.';
-                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-pending';
-                            if (data.email && acessoUser) acessoUser.textContent = data.email;
-                            if (data.email && acessoEmail) {
-                                acessoEmail.textContent = 'E-mail de acesso: ' + data.email;
-                                acessoEmail.style.display = 'block';
-                            }
-                        } else {
-                            acessoStatus.textContent = 'Não foi possível confirmar a matrícula. Entre em contato com o suporte se o problema persistir.';
-                            acessoStatus.className = 'status-page-matricula-status status-page-matricula-warn';
+            function sleep(ms) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, ms);
+                });
+            }
+
+            function mostrarMoodleLink() {
+                if (!MOODLE_BASE_URL || !ref || !btnAcessar) return;
+                var courseKey = ref.indexOf("|") >= 0 ? ref.split("|")[0] : null;
+                var moodleId = courseKey ? COURSE_MOODLE_IDS[courseKey] : null;
+                if (!moodleId) return;
+                btnAcessar.href = MOODLE_BASE_URL.replace(/\/$/, "") + "/course/view.php?id=" + moodleId;
+                btnAcessar.style.display = "inline-block";
+                btnAcessar.target = "_blank";
+                btnAcessar.rel = "noopener noreferrer";
+            }
+
+            function estadoSucesso(data) {
+                document.title = "Pagamento e matrícula confirmados - FEMAF";
+                setCardState("status-page--sucesso");
+                titulo.textContent = "Pagamento e matrícula confirmados";
+                mensagem.textContent =
+                    "Seu pagamento foi aprovado pelo Mercado Pago e sua matrícula neste curso foi registrada no ambiente EAD.";
+                if (boxPlaceholder) boxPlaceholder.style.display = "none";
+                boxAcesso.style.display = "block";
+                var email = (data && data.email) || emailFromRef;
+                if (isNewUser && emailFromRef && acessoUser) {
+                    acessoUser.textContent = emailFromRef;
+                } else if (!isNewUser && acessoUser) {
+                    acessoUser.textContent = "sua matrícula EAD (informada no pagamento)";
+                }
+                if (email && acessoEmail) {
+                    acessoEmail.textContent = "E-mail de acesso: " + email;
+                    acessoEmail.style.display = "block";
+                    if (acessoUser) acessoUser.textContent = email;
+                }
+                if (acessoStatus) {
+                    acessoStatus.textContent = "Matrícula confirmada no EAD.";
+                    acessoStatus.style.display = "block";
+                }
+                mostrarMoodleLink();
+            }
+
+            function estadoErro(tituloTxt, msgTxt) {
+                document.title = tituloTxt + " - FEMAF";
+                setCardState("status-page--erro");
+                titulo.textContent = tituloTxt;
+                mensagem.textContent = msgTxt;
+                if (boxPlaceholder) boxPlaceholder.style.display = "none";
+                boxAcesso.style.display = "none";
+                if (btnAcessar) btnAcessar.style.display = "none";
+            }
+
+            async function umaVerificacao() {
+                var url =
+                    API_BASE_URL +
+                    "/checkout/verify-enrollment?payment_id=" +
+                    encodeURIComponent(paymentId);
+                var r = await fetch(url);
+                var data = await r.json();
+                return data;
+            }
+
+            async function executarVerificacao() {
+                var ultimo = null;
+
+                if (!paymentId) {
+                    estadoErro(
+                        "Não foi possível validar automaticamente",
+                        "Esta página não recebeu o identificador do pagamento (payment_id). Guarde o comprovante do Mercado Pago e entre em contato com o suporte da FEMAF."
+                    );
+                    return;
+                }
+                if (!API_BASE_URL) {
+                    estadoErro(
+                        "Configuração incompleta",
+                        "Não há endereço do servidor configurado para validar a matrícula. Entre em contato com o suporte informando o número do pagamento: " +
+                            paymentId +
+                            "."
+                    );
+                    return;
+                }
+
+                for (var i = 0; i < MAX_ATTEMPTS; i++) {
+                    mensagem.textContent =
+                        "Confirmando com o Mercado Pago e o EAD… tentativa " +
+                        (i + 1) +
+                        " de " +
+                        MAX_ATTEMPTS +
+                        ".";
+                    try {
+                        var data = await umaVerificacao();
+                        ultimo = data;
+
+                        if (data.created === true) {
+                            estadoSucesso(data);
+                            return;
                         }
-                    })
-                    .catch(function () {
-                        acessoStatus.textContent = 'Não foi possível validar a matrícula. Use o e-mail informado no pagamento para acessar o EAD.';
-                        acessoStatus.className = 'status-page-matricula-status status-page-matricula-warn';
-                    });
-            } else if (emailFromRef && acessoStatus) {
-                acessoStatus.style.display = 'none';
+
+                        if (data.status === "rejected" || data.status === "cancelled" || data.status === "refunded") {
+                            estadoErro(
+                                "Pagamento não concluído",
+                                "Este pagamento não foi aprovado (situação: " +
+                                    data.status +
+                                    "). Se acredita que houve um erro, fale com o suporte com o número: " +
+                                    paymentId +
+                                    "."
+                            );
+                            return;
+                        }
+
+                        if (data.error === "Curso não mapeado") {
+                            estadoErro(
+                                "Curso não configurado",
+                                "O curso associado a este pagamento ainda não está vinculado ao EAD. Informe ao suporte o número do pagamento: " +
+                                    paymentId +
+                                    "."
+                            );
+                            return;
+                        }
+
+                        if (
+                            data.error === "external_reference ausente" ||
+                            data.error === "external_reference inválido"
+                        ) {
+                            estadoErro(
+                                "Dados do pagamento incompletos",
+                                "Não foi possível identificar o curso ou o aluno a partir do pagamento. Suporte: informe o número " +
+                                    paymentId +
+                                    "."
+                            );
+                            return;
+                        }
+                    } catch (e) {
+                        /* rede: segue tentando */
+                    }
+
+                    if (i < MAX_ATTEMPTS - 1) {
+                        await sleep(INTERVAL_MS);
+                    }
+                }
+
+                if (ultimo && (ultimo.status === "pending" || ultimo.status === "in_process")) {
+                    estadoErro(
+                        "Pagamento em análise",
+                        "O Mercado Pago ainda não aprovou este pagamento (situação: " +
+                            ultimo.status +
+                            "). Quando for aprovado, atualize esta página para concluir a matrícula no EAD. Pagamento: " +
+                            paymentId +
+                            "."
+                    );
+                    return;
+                }
+
+                estadoErro(
+                    "Matrícula não confirmada a tempo",
+                    "Não foi possível confirmar no EAD após várias tentativas. Se o pagamento já aparece como aprovado no Mercado Pago, informe o suporte com o número: " +
+                        paymentId +
+                        "."
+                );
             }
+
+            executarVerificacao();
         })();
     </script>
 </body>

@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { getPaymentById } from "../services/mercadoPago.service.js";
-import { getUserByEmail, createUser, enrollUserInCourse, isUserEnrolledInCourse } from "../services/moodle.service.js";
-import { getMoodleCourseId } from "../utils/courseMap.js";
+import { syncMoodleAfterApprovedPayment } from "../services/moodleEnrollmentFromPayment.service.js";
 
 const router = Router();
 
@@ -70,56 +69,13 @@ router.post("/mercadopago", (req, res) => {
       console.log("[webhook] external_reference:", external_reference);
 
       if (payment.status === "approved") {
-        console.log("[webhook] external_reference:", external_reference);
-
-        const refString = typeof external_reference === "string" ? external_reference : "";
-        const parts = refString.split("|");
-        if (parts.length !== 3) {
-          console.log("[webhook] external_reference inválido (esperado COURSE_ID|type|identifier):", external_reference);
-          return;
-        }
-
-        const [extCourseId, type, identifier] = parts;
-
-        // Para agora: usar identifier direto como email (placeholder para "buscar email pela matrícula")
-        let email = identifier;
-        console.log("[webhook] email:", email);
-
-        // Mapeamento de cursos (EXT-XXX -> ID do Moodle)
-        const courseId = getMoodleCourseId(extCourseId);
-        if (!courseId) {
-          console.log("[webhook] Curso não mapeado:", extCourseId);
-          return;
-        }
-
-        let user = await getUserByEmail(email);
-        console.log("[webhook] user encontrado:", user);
-
-        if (!user) {
-          const newUser = await createUser({
-            email,
-            firstname: "Aluno",
-            lastname: "FEMAF",
-          });
-          user = { id: newUser.id, email, username: email };
-          console.log("[webhook] user encontrado:", user);
-        }
-
-        if (!user?.id) {
-          console.log("[webhook] Não foi possível obter o ID do usuário para matricular:", { email });
-          return;
-        }
-
-        console.log("[webhook] matriculando no curso:", courseId);
-        await enrollUserInCourse(user.id, courseId);
-        const enrolled = await isUserEnrolledInCourse(user.id, courseId);
-        if (enrolled) {
+        const sync = await syncMoodleAfterApprovedPayment(payment, "[webhook]");
+        if (sync.enrolled) {
           console.log("✅ PAGAMENTO APROVADO — FLUXO OK (MATRICULA NO MOODLE)");
+        } else if (sync.ok) {
+          console.log("[webhook] ⚠️ matrícula não confirmada", sync);
         } else {
-          console.log("[webhook] ⚠️ tentativa de matrícula não confirmada no Moodle", {
-            userId: user.id,
-            courseId,
-          });
+          console.log("[webhook] sync Moodle não concluído:", sync.reason);
         }
       }
     } catch (err) {

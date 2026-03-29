@@ -1655,6 +1655,17 @@ footer {
 .status-page--sucesso h2 { color: #059669; }
 .status-page--erro h2 { color: #dc2626; }
 .status-page--pendente h2 { color: #d97706; }
+.status-page--verificando h2 { color: #64748b; }
+.status-page-acesso--placeholder {
+    text-align: left;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    color: #64748b;
+    font-size: 0.9375rem;
+}
 
 /* Modal checkout: perfil EAD + continuar para pagamento */
 .modal-checkout {

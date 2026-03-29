@@ -4,6 +4,9 @@ import { syncMoodleAfterApprovedPayment } from "../services/moodleEnrollmentFrom
 
 const router = Router();
 
+/** Mercado Pago envia 2+ POSTs seguidos (ex.: payment.created + topic=payment). Serializa por paymentId. */
+const webhookTailByPaymentId = new Map();
+
 /**
  * Extrai paymentId do payload do Mercado Pago (JSON ou form-urlencoded).
  */
@@ -61,14 +64,22 @@ router.post("/mercadopago", (req, res) => {
 
   console.log("[webhook] paymentId:", paymentId);
 
-  setImmediate(async () => {
-    try {
-      const payment = await getPaymentById(paymentId);
-      console.log("[webhook] payment.status:", payment.status);
-      const external_reference = payment.external_reference ?? payment.external_reference_id;
-      console.log("[webhook] external_reference:", external_reference);
+  const prev = webhookTailByPaymentId.get(paymentId) || Promise.resolve();
+  const job = prev
+    .catch(() => {})
+    .then(async () => {
+      try {
+        const payment = await getPaymentById(paymentId);
+        console.log("[webhook] payment.status:", payment.status);
+        const external_reference = payment.external_reference ?? payment.external_reference_id;
+        console.log("[webhook] external_reference:", external_reference);
 
-      if (payment.status === "approved") {
+        if (payment.status !== "approved") {
+          console.log("[webhook] ignorado: status não é approved");
+          return;
+        }
+
+        console.log("[webhook] iniciando sync Moodle…");
         const sync = await syncMoodleAfterApprovedPayment(payment, "[webhook]");
         if (sync.enrolled) {
           console.log("✅ PAGAMENTO APROVADO — FLUXO OK (MATRICULA NO MOODLE)");
@@ -77,10 +88,15 @@ router.post("/mercadopago", (req, res) => {
         } else {
           console.log("[webhook] sync Moodle não concluído:", sync.reason);
         }
+      } catch (err) {
+        console.error("[webhook] Erro ao processar:", err.message);
+        if (err.stack) console.error(err.stack);
       }
-    } catch (err) {
-      console.error("[webhook] Erro ao processar:", err.message);
-      if (err.stack) console.error(err.stack);
+    });
+  webhookTailByPaymentId.set(paymentId, job);
+  job.finally(() => {
+    if (webhookTailByPaymentId.get(paymentId) === job) {
+      webhookTailByPaymentId.delete(paymentId);
     }
   });
 });

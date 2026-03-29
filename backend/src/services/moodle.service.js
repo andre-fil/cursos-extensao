@@ -53,7 +53,7 @@ export async function getUserByEmail(email) {
     "criteria[0][value]": trimmed,
   };
   const url = buildMoodleUrl(params);
-  console.log("[moodle] request:", url);
+  console.log("[moodle] request:", url.replace(/wstoken=[^&]*/, "wstoken=***"));
 
   const res = await fetch(url, { method: "GET" });
   const data = await res.json();
@@ -116,6 +116,65 @@ export async function createUser(user) {
   return { id: createdUsers[0].id };
 }
 
+/** Mesma regra de deriveUsername que createUser (evita divergência com webhooks duplicados). */
+export function emailToMoodleUsername(email) {
+  const e = String(email ?? "").trim();
+  if (!e) return "user_" + Date.now();
+  const u = e.replace(/[^a-zA-Z0-9._@-]/g, "_").toLowerCase();
+  return u || "user_" + Date.now();
+}
+
+export async function getUserByUsername(username) {
+  const u = String(username ?? "").trim();
+  if (!u) return null;
+  const params = {
+    wsfunction: "core_user_get_users",
+    "criteria[0][key]": "username",
+    "criteria[0][value]": u,
+  };
+  const url = buildMoodleUrl(params);
+  console.log("[moodle] request (username):", url.replace(/wstoken=[^&]*/, "wstoken=***"));
+  const res = await fetch(url, { method: "GET" });
+  const data = await res.json();
+  if (data.exception) throw new Error(data.message || data.exception);
+  const users = Array.isArray(data) ? data : (data.users || []);
+  console.log("[moodle] response (username):", users.length, "usuário(s)");
+  if (users.length === 0) return null;
+  const row = users[0];
+  return { id: row.id, username: row.username, email: row.email };
+}
+
+/**
+ * Garante registro no Moodle: evita falha quando dois webhooks correm createUser (e-mail/username já existe).
+ */
+export async function ensureMoodleUser({ email, firstname, lastname }) {
+  const em = String(email ?? "").trim();
+  if (!em) throw new Error("email é obrigatório");
+  const fn = String(firstname ?? "Aluno").trim();
+  const ln = String(lastname ?? "FEMAF").trim();
+
+  let user = await getUserByEmail(em);
+  if (user) return user;
+
+  const uname = emailToMoodleUsername(em);
+  user = await getUserByUsername(uname);
+  if (user) return user;
+
+  try {
+    const created = await createUser({ email: em, firstname: fn, lastname: ln });
+    return { id: created.id, email: em, username: uname };
+  } catch (e) {
+    const msg = String(e.message || "");
+    if (/already|duplicate|exist|registered|utilizado|cadastrado|em uso|já existe/i.test(msg)) {
+      user = await getUserByEmail(em);
+      if (user) return user;
+      user = await getUserByUsername(uname);
+      if (user) return user;
+    }
+    throw e;
+  }
+}
+
 // ——— Implementação atual: enrol_manual_enrol_users (matrícula no curso) ———
 export async function findUserByRegistration(registration) {
   console.log("[moodle] findUserByRegistration não implementado nesta etapa");
@@ -134,7 +193,7 @@ export async function isUserEnrolledInCourse(userId, courseId) {
     courseid: String(courseId),
   };
   const url = buildMoodleUrl(params);
-  console.log("[moodle] request:", url);
+  console.log("[moodle] request:", url.replace(/wstoken=[^&]*/, "wstoken=***"));
 
   const res = await fetch(url, { method: "GET" });
   const data = await res.json();

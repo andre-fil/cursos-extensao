@@ -1,6 +1,6 @@
 {
   "name": "femaf-backend",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Backend FEMAF - Checkout Pro Mercado Pago (App Runner)",
   "main": "src/index.js",
   "type": "module",

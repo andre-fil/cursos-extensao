@@ -65,6 +65,9 @@ export async function createPreference(courseId, options = {}) {
     throw new Error("Tipo de perfil inválido: use type 'existing' com registration ou type 'new' com user");
   }
 
+  const apiBaseUrl = (process.env.API_BASE_URL || "").replace(/\/$/, "");
+  const notificationUrl = apiBaseUrl ? `${apiBaseUrl}/webhook/mercadopago` : "";
+
   const body = {
     items: [
       {
@@ -83,7 +86,17 @@ export async function createPreference(courseId, options = {}) {
     auto_return: "approved",
     external_reference: externalReference,
     ...(payer && { payer }),
+    ...(notificationUrl && { notification_url: notificationUrl }),
   };
+
+  if (notificationUrl) {
+    console.log("[checkout] notification_url (webhook MP):", notificationUrl);
+  } else {
+    console.warn(
+      "[checkout] API_BASE_URL não definido — preferência sem notification_url. " +
+        "Configure API_BASE_URL no App Runner (URL HTTPS do backend) ou o webhook no painel MP."
+    );
+  }
 
   const preference = await preferenceClient.create({ body });
   if (!preference.init_point) throw new Error("Resposta MP sem init_point");

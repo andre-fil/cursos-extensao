@@ -16,11 +16,22 @@ function buildMoodleUrl(params) {
   return `${MOODLE_BASE_URL}/webservice/rest/server.php?${searchParams.toString()}`;
 }
 
+/** Parse JSON seguro (Moodle às vezes responde corpo vazio em sucesso). */
+async function safeJson(res) {
+  const text = await res.text();
+  if (!text || !text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { _raw: text };
+  }
+}
+
 /** Operações de escrita: POST com parâmetros só na URL (sem body), evita limite/travamento de GET longo. */
 async function moodleWrite(url) {
   console.log("[moodle] request (POST):", url.replace(/wstoken=[^&]*/, "wstoken=***"));
-  const res = await fetch(url, { method: "POST" });
-  const data = await res.json();
+  const res = await fetch(url, { method: "POST", headers: { Accept: "application/json" } });
+  const data = await safeJson(res);
   console.log("[moodle] response:", data);
   return data;
 }
@@ -131,7 +142,38 @@ export async function isUserEnrolledInCourse(userId, courseId) {
 
   if (data.exception) throw new Error(data.message || data.exception);
   const users = Array.isArray(data) ? data : (Array.isArray(data.users) ? data.users : []);
-  return users.some((u) => Number(u.id) === Number(userId));
+  return users.some((u) => {
+    const uid = u.id ?? u.userid ?? u.user_id;
+    return Number(uid) === Number(userId);
+  });
+}
+
+function isMessageNotSentError(data) {
+  if (!data || !data.exception) return false;
+  const msg = String(data.message || data.errorcode || data.exception || "");
+  return /Message was not sent/i.test(msg);
+}
+
+/** POST application/x-www-form-urlencoded (alguns Moodles tratam enrol melhor no body). */
+async function moodleWriteForm(paramsFlat) {
+  const formUrl = `${MOODLE_BASE_URL}/webservice/rest/server.php`;
+  const body = new URLSearchParams({
+    wstoken: MOODLE_TOKEN,
+    moodlewsrestformat: "json",
+    ...paramsFlat,
+  });
+  console.log("[moodle] request (POST form):", formUrl, "| wsfunction:", paramsFlat.wsfunction);
+  const res = await fetch(formUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+  const data = await safeJson(res);
+  console.log("[moodle] response (form):", data);
+  return data;
 }
 
 export async function enrollUserInCourse(userId, moodleCourseId) {
@@ -145,21 +187,59 @@ export async function enrollUserInCourse(userId, moodleCourseId) {
   };
 
   const url = buildMoodleUrl(params);
-  const data = await moodleWrite(url);
 
-  if (data.exception) {
-    const msg = String(data.message || data.errorcode || data.exception);
-
-    // O enrol_manual_enrol_users pode falhar no envio de mensagem/notification
-    // mas ainda assim criar a matrícula. Para não impedir o fluxo, tratamos
-    // esse caso como não-bloqueante.
-    if (/Message was not sent/i.test(msg)) {
-      console.log("[moodle] Warning: ignorando falha de envio de mensagem:", msg);
-      return;
+  /** Pequena pausa: Moodle pode demorar a refletir em core_enrol_get_enrolled_users. */
+  async function confirmEnrolled() {
+    const delays = [200, 600, 1200];
+    for (const ms of delays) {
+      await new Promise((r) => setTimeout(r, ms));
+      try {
+        if (await isUserEnrolledInCourse(userId, moodleCourseId)) return true;
+      } catch (e) {
+        console.log("[moodle] confirmEnrolled check error:", e.message);
+      }
     }
-
-    throw new Error(msg);
+    return false;
   }
+
+  // 1) POST querystring (padrão do projeto)
+  let data = await moodleWrite(url);
+  if (!data?.exception && (await confirmEnrolled())) return;
+
+  if (data?.exception) {
+    const msg = String(data.message || data.errorcode || data.exception);
+    if (!isMessageNotSentError(data)) {
+      // Erro “duro”: ainda assim tentamos GET/form (às vezes primeiro POST falha por timeout/parse)
+      console.log("[moodle] enrol POST (URL) exception:", msg);
+    } else {
+      console.log("[moodle] enrol POST (URL) — Message was not sent; verificando/retries…");
+    }
+  }
+
+  if (await confirmEnrolled()) return;
+
+  // 2) GET com mesmos parâmetros (comportamento REST clássico do Moodle)
+  console.log("[moodle] retry enrol via GET");
+  const resGet = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
+  data = await safeJson(resGet);
+  console.log("[moodle] response (GET enrol):", data);
+  if (data?.exception && !isMessageNotSentError(data)) {
+    console.log("[moodle] GET enrol error:", data.message);
+  }
+  if (await confirmEnrolled()) return;
+
+  // 3) POST form-urlencoded (estrutura enrolments[] mais confiável em alguns servidores)
+  console.log("[moodle] retry enrol via POST form body");
+  data = await moodleWriteForm(params);
+  if (data?.exception && !isMessageNotSentError(data)) {
+    throw new Error(String(data.message || data.exception));
+  }
+  if (await confirmEnrolled()) return;
+
+  throw new Error(
+    "Matrícula não confirmada no Moodle após POST (URL), GET e POST (form). " +
+      "Verifique matrícula manual ativa no curso, papel do token e notificações/SMTP no Moodle (erro comum: Message was not sent)."
+  );
 }
 
 // Alias para compatibilidade com nomenclatura do usuário.

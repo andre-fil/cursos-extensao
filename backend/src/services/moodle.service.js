@@ -1,6 +1,6 @@
 /**
  * Integração com Moodle via Web Services REST.
- * Parâmetros sempre na URL (querystring); não usar body JSON nem form-urlencoded.
+ * Leituras: GET com querystring. Criação de usuário e matrícula: POST form-urlencoded (evita URL longa).
  */
 
 const MOODLE_BASE_URL = (process.env.MOODLE_BASE_URL || "").replace(/\/$/, "");
@@ -61,14 +61,15 @@ export async function getUserByEmail(email) {
 
   if (data.exception) throw new Error(data.message || data.exception);
   const users = Array.isArray(data) ? data : (data.users || []);
-  if (users.length === 0) return null;
-  const u = users[0];
-  return { id: u.id, username: u.username, email: u.email };
+  const want = trimmed.toLowerCase();
+  const match = users.find((x) => String(x.email ?? "").trim().toLowerCase() === want);
+  if (!match) return null;
+  return { id: match.id, username: match.username, email: match.email };
 }
 
 /**
  * Cria usuário no Moodle.
- * wsfunction=core_user_create_users; todos os parâmetros na querystring.
+ * Usa POST form-urlencoded (URL com senha + muitos campos quebra em proxies / limite de query).
  * @param {{ username: string, password: string, firstname: string, lastname: string, email: string }} user
  * @returns {Promise<{id: number}>}
  */
@@ -102,10 +103,15 @@ export async function createUser(user) {
     "users[0][auth]": "manual",
     "users[0][lang]": "pt_br",
   };
-  const url = buildMoodleUrl(params);
-  const data = await moodleWrite(url);
 
-  if (data.exception) throw new Error(data.message || data.exception);
+  let data = await moodleWriteForm(params);
+  if (data?.exception) {
+    console.log("[moodle] createUser form falhou, tentando POST com parâmetros na URL…");
+    const url = buildMoodleUrl(params);
+    data = await moodleWrite(url);
+  }
+
+  if (!data || data.exception) throw new Error(data?.message || data?.exception || "Resposta vazia do Moodle ao criar usuário");
   const createdUsers = Array.isArray(data) ? data : (Array.isArray(data.users) ? data.users : []);
   if (!createdUsers || createdUsers.length === 0 || createdUsers[0].id === undefined) {
     // Alguns deployments podem retornar { user: { id: ... } } ou similar.
@@ -138,10 +144,11 @@ export async function getUserByUsername(username) {
   const data = await res.json();
   if (data.exception) throw new Error(data.message || data.exception);
   const users = Array.isArray(data) ? data : (data.users || []);
-  console.log("[moodle] response (username):", users.length, "usuário(s)");
-  if (users.length === 0) return null;
-  const row = users[0];
-  return { id: row.id, username: row.username, email: row.email };
+  const want = u.toLowerCase();
+  const match = users.find((x) => String(x.username ?? "").trim().toLowerCase() === want);
+  console.log("[moodle] response (username):", users.length, "linha(s), match exato:", Boolean(match));
+  if (!match) return null;
+  return { id: match.id, username: match.username, email: match.email };
 }
 
 /**
@@ -160,6 +167,7 @@ export async function ensureMoodleUser({ email, firstname, lastname }) {
   user = await getUserByUsername(uname);
   if (user) return user;
 
+  console.log("[moodle] ensureMoodleUser: chamando core_user_create_users para", em);
   try {
     const created = await createUser({ email: em, firstname: fn, lastname: ln });
     return { id: created.id, email: em, username: uname };
@@ -213,7 +221,7 @@ function isMessageNotSentError(data) {
   return /Message was not sent/i.test(msg);
 }
 
-/** POST application/x-www-form-urlencoded (alguns Moodles tratam enrol melhor no body). */
+/** POST application/x-www-form-urlencoded (create/enrol: evita URL gigante e bloqueios de proxy). */
 async function moodleWriteForm(paramsFlat) {
   const formUrl = `${MOODLE_BASE_URL}/webservice/rest/server.php`;
   const body = new URLSearchParams({
@@ -261,14 +269,29 @@ export async function enrollUserInCourse(userId, moodleCourseId) {
     return false;
   }
 
-  // 1) POST querystring (padrão do projeto)
-  let data = await moodleWrite(url);
+  // 1) POST form primeiro (mesmo motivo do createUser: URL curta no servidor)
+  let data = await moodleWriteForm(params);
   if (!data?.exception && (await confirmEnrolled())) return;
 
   if (data?.exception) {
     const msg = String(data.message || data.errorcode || data.exception);
     if (!isMessageNotSentError(data)) {
-      // Erro “duro”: ainda assim tentamos GET/form (às vezes primeiro POST falha por timeout/parse)
+      console.log("[moodle] enrol POST (form) exception:", msg);
+    } else {
+      console.log("[moodle] enrol POST (form) — Message was not sent; verificando/retries…");
+    }
+  }
+
+  if (await confirmEnrolled()) return;
+
+  // 2) POST com parâmetros na URL
+  console.log("[moodle] retry enrol via POST (URL)");
+  data = await moodleWrite(url);
+  if (!data?.exception && (await confirmEnrolled())) return;
+
+  if (data?.exception) {
+    const msg = String(data.message || data.errorcode || data.exception);
+    if (!isMessageNotSentError(data)) {
       console.log("[moodle] enrol POST (URL) exception:", msg);
     } else {
       console.log("[moodle] enrol POST (URL) — Message was not sent; verificando/retries…");
@@ -277,7 +300,7 @@ export async function enrollUserInCourse(userId, moodleCourseId) {
 
   if (await confirmEnrolled()) return;
 
-  // 2) GET com mesmos parâmetros (comportamento REST clássico do Moodle)
+  // 3) GET
   console.log("[moodle] retry enrol via GET");
   const resGet = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
   data = await safeJson(resGet);
@@ -287,8 +310,8 @@ export async function enrollUserInCourse(userId, moodleCourseId) {
   }
   if (await confirmEnrolled()) return;
 
-  // 3) POST form-urlencoded (estrutura enrolments[] mais confiável em alguns servidores)
-  console.log("[moodle] retry enrol via POST form body");
+  // 4) Última tentativa form (idempotente)
+  console.log("[moodle] retry enrol via POST form (2ª)");
   data = await moodleWriteForm(params);
   if (data?.exception && !isMessageNotSentError(data)) {
     throw new Error(String(data.message || data.exception));

@@ -9,11 +9,33 @@ export function parsePaymentExternalReference(payment) {
   return { courseId: parts[0], type: parts[1], identifier: parts[2] };
 }
 
+/** Metadata da preferência (Checkout Pro) vem no pagamento; o objeto payer muitas vezes não traz nome no webhook. */
+function readMetadata(payment) {
+  const m = payment?.metadata;
+  if (m && typeof m === "object" && !Array.isArray(m)) return m;
+  return {};
+}
+
+function metaField(meta, ...keys) {
+  for (const k of keys) {
+    if (meta[k] != null && String(meta[k]).trim()) return String(meta[k]).trim();
+    const found = Object.keys(meta).find((x) => x.toLowerCase() === String(k).toLowerCase());
+    if (found != null && meta[found] != null && String(meta[found]).trim()) return String(meta[found]).trim();
+  }
+  return "";
+}
+
 function payerDisplayName(payment) {
+  const meta = readMetadata(payment);
+  const mFn = metaField(meta, "femaf_firstname", "femaf_fn");
+  const mLn = metaField(meta, "femaf_lastname", "femaf_ln");
   const p = payment?.payer && typeof payment.payer === "object" ? payment.payer : {};
-  const first = String(p.first_name ?? p.name ?? "").trim() || "Aluno";
-  const last = String(p.last_name ?? "").trim() || "FEMAF";
-  return { firstname: first, lastname: last };
+  const first = (mFn || String(p.first_name ?? p.name ?? "").trim()).trim();
+  const last = (mLn || String(p.last_name ?? "").trim()).trim();
+  return {
+    firstname: first || "Aluno",
+    lastname: last || "FEMAF",
+  };
 }
 
 /**

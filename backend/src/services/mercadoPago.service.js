@@ -87,6 +87,13 @@ export async function createPreference(courseId, options = {}) {
     external_reference: externalReference,
     ...(payer && { payer }),
     ...(notificationUrl && { notification_url: notificationUrl }),
+    ...(type === "new" &&
+      user && {
+        metadata: {
+          femaf_firstname: String(user.firstname || "").trim().slice(0, 255),
+          femaf_lastname: String(user.lastname || "").trim().slice(0, 255),
+        },
+      }),
   };
 
   if (notificationUrl) {

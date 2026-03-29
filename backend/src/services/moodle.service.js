@@ -64,7 +64,13 @@ export async function getUserByEmail(email) {
   const want = trimmed.toLowerCase();
   const match = users.find((x) => String(x.email ?? "").trim().toLowerCase() === want);
   if (!match) return null;
-  return { id: match.id, username: match.username, email: match.email };
+  return {
+    id: match.id,
+    username: match.username,
+    email: match.email,
+    firstname: match.firstname,
+    lastname: match.lastname,
+  };
 }
 
 /**
@@ -148,7 +154,24 @@ export async function getUserByUsername(username) {
   const match = users.find((x) => String(x.username ?? "").trim().toLowerCase() === want);
   console.log("[moodle] response (username):", users.length, "linha(s), match exato:", Boolean(match));
   if (!match) return null;
-  return { id: match.id, username: match.username, email: match.email };
+  return {
+    id: match.id,
+    username: match.username,
+    email: match.email,
+    firstname: match.firstname,
+    lastname: match.lastname,
+  };
+}
+
+function isPlaceholderMoodleName(firstname, lastname) {
+  return (
+    String(firstname ?? "").trim().toLowerCase() === "aluno" &&
+    String(lastname ?? "").trim().toLowerCase() === "femaf"
+  );
+}
+
+function hasRealDisplayName(firstname, lastname) {
+  return !isPlaceholderMoodleName(firstname, lastname);
 }
 
 /**
@@ -160,12 +183,23 @@ export async function ensureMoodleUser({ email, firstname, lastname }) {
   const fn = String(firstname ?? "Aluno").trim();
   const ln = String(lastname ?? "FEMAF").trim();
 
+  async function fixPlaceholderIfNeeded(userRow) {
+    if (!userRow?.id) return userRow;
+    const ufn = String(userRow.firstname ?? "").trim();
+    const uln = String(userRow.lastname ?? "").trim();
+    if (isPlaceholderMoodleName(ufn, uln) && hasRealDisplayName(fn, ln)) {
+      await updateMoodleUserNames(userRow.id, fn, ln);
+      return { ...userRow, firstname: fn, lastname: ln };
+    }
+    return userRow;
+  }
+
   let user = await getUserByEmail(em);
-  if (user) return user;
+  if (user) return fixPlaceholderIfNeeded(user);
 
   const uname = emailToMoodleUsername(em);
   user = await getUserByUsername(uname);
-  if (user) return user;
+  if (user) return fixPlaceholderIfNeeded(user);
 
   console.log("[moodle] ensureMoodleUser: chamando core_user_create_users para", em);
   try {
@@ -175,9 +209,9 @@ export async function ensureMoodleUser({ email, firstname, lastname }) {
     const msg = String(e.message || "");
     if (/already|duplicate|exist|registered|utilizado|cadastrado|em uso|já existe/i.test(msg)) {
       user = await getUserByEmail(em);
-      if (user) return user;
+      if (user) return fixPlaceholderIfNeeded(user);
       user = await getUserByUsername(uname);
-      if (user) return user;
+      if (user) return fixPlaceholderIfNeeded(user);
     }
     throw e;
   }
@@ -241,6 +275,22 @@ async function moodleWriteForm(paramsFlat) {
   const data = await safeJson(res);
   console.log("[moodle] response (form):", data);
   return data;
+}
+
+/** Atualiza nome no Moodle (alunos já criados como Aluno FEMAF). Requer core_user_update_users no serviço web. */
+export async function updateMoodleUserNames(userId, firstname, lastname) {
+  const fn = String(firstname ?? "").trim();
+  const ln = String(lastname ?? "").trim();
+  if (!userId || !fn || !ln) return;
+  const params = {
+    wsfunction: "core_user_update_users",
+    "users[0][id]": String(userId),
+    "users[0][firstname]": fn,
+    "users[0][lastname]": ln,
+  };
+  const data = await moodleWriteForm(params);
+  if (data?.exception) throw new Error(data.message || data.exception);
+  console.log("[moodle] core_user_update_users ok userId", userId);
 }
 
 export async function enrollUserInCourse(userId, moodleCourseId) {
